@@ -13,6 +13,9 @@ dotfiles/
 │   ├── README.md
 │   ├── install.sh              # 자동 설치 (zsh/bash)
 │   └── aliases                 # alias 목록
+├── kubectx/                     # ✅ kubectx + kubens
+│   ├── README.md
+│   └── install.sh              # 자동 설치 (Mac/Linux)
 ├── docker/                      # (예정) Docker 관련 설정
 ├── git/                         # (예정) Git 설정
 │   └── .gitconfig
@@ -34,6 +37,14 @@ cd kubectl
 
 자세한 내용은 [kubectl/README.md](kubectl/README.md) 참고
 
+### kubectx + kubens (현재 사용 가능)
+```bash
+cd kubectx
+./install.sh
+```
+
+자세한 내용은 [kubectx/README.md](kubectx/README.md) 참고
+
 ---
 
 ## ✅ 완료된 설정
@@ -42,6 +53,11 @@ cd kubectl
 - ✅ kubectl 자동완성 (Tab)
 - ✅ `k` alias 및 단축 명령어
 - ✅ zsh/bash 자동 감지
+
+### kubectx + kubens
+- ✅ 컨텍스트 빠른 전환
+- ✅ 네임스페이스 빠른 전환
+- ✅ Mac/Linux 자동 설치
 
 ---
 
@@ -83,6 +99,7 @@ cd kubectl
 
 ## 📝 업데이트 내역
 
+- 2024.10.15: kubectx + kubens 설치 스크립트 추가
 - 2024.10.15: kubectl 설정 추가
 - 2024.10.15: 레포지토리 초기 생성
 

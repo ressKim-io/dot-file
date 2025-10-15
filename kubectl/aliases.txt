@@ -1,0 +1,82 @@
+# kubectl alias 목록
+# 이 파일은 참고용입니다. install.sh가 자동으로 설정합니다.
+
+# ========================================
+# 기본 alias
+# ========================================
+
+alias k=kubectl
+complete -F __start_kubectl k
+
+
+# ========================================
+# 자주 쓰는 명령어 단축
+# ========================================
+
+# get
+alias kg='kubectl get'
+alias kgp='kubectl get pods'
+alias kgpa='kubectl get pods --all-namespaces'
+alias kgs='kubectl get svc'
+alias kgd='kubectl get deploy'
+alias kgn='kubectl get nodes'
+
+# describe
+alias kd='kubectl describe'
+alias kdp='kubectl describe pod'
+alias kds='kubectl describe svc'
+alias kdd='kubectl describe deploy'
+
+# logs
+alias kl='kubectl logs'
+alias klf='kubectl logs -f'
+
+# exec
+alias kex='kubectl exec -it'
+
+# delete
+alias kdel='kubectl delete'
+alias kdelp='kubectl delete pod'
+
+
+# ========================================
+# 컨텍스트 / 네임스페이스
+# ========================================
+
+# 현재 컨텍스트 확인
+alias kctx='kubectl config current-context'
+
+# 현재 네임스페이스 확인
+alias kns='kubectl config view --minify --output "jsonpath={..namespace}"'
+
+
+# ========================================
+# 응용 명령어
+# ========================================
+
+# 전체 리소스 조회
+alias kga='kubectl get all'
+
+# 실시간 Pod 모니터링 (watch)
+alias kgpw='watch kubectl get pods'
+
+# Pod 재시작
+alias krp='kubectl rollout restart deployment'
+
+# Pod 상태 확인
+alias kgpwide='kubectl get pods -o wide'
+
+
+# ========================================
+# 사용 예시
+# ========================================
+
+# Before:
+# kubectl get pods
+# kubectl logs my-pod -f
+# kubectl describe pod my-pod
+
+# After:
+# kgp
+# klf my-pod
+# kdp my-pod

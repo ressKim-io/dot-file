@@ -4,6 +4,49 @@ kubectl 명령어를 빠르게 사용하기 위한 alias 및 자동완성 설정
 
 ---
 
+## ✨ 이 설정으로 할 수 있는 것
+
+### 타이핑 절약
+```bash
+# Before
+kubectl get pods
+kubectl get pods --all-namespaces
+kubectl describe pod my-app
+kubectl logs my-app -f
+kubectl exec -it my-app -- /bin/bash
+
+# After (50% 절약)
+kgp
+kgpa
+kdp my-app
+klf my-app
+kex my-app -- /bin/bash
+```
+
+### 자동완성 (Tab 키)
+```bash
+k get p[Tab]           # → pods
+k get pods -n [Tab]    # → 네임스페이스 목록
+k logs my-[Tab]        # → my-로 시작하는 pod 이름들
+```
+
+### 실시간 모니터링
+```bash
+kgpw                   # Pod 상태 실시간 확인 (watch)
+klf pod-name           # 로그 실시간 스트리밍
+```
+
+### 빠른 리소스 조회
+```bash
+kg all                 # 모든 리소스 한번에
+kgpwide                # Pod IP, Node 정보 포함
+kga                    # namespace의 모든 리소스
+```
+
+**효과:** 하루 타이핑 500회 → 250회 (50% 절감)
+
+---
+
 ## 🚀 빠른 설치
 
 ### 자동 설치 (권장)

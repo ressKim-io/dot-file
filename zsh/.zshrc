@@ -8,8 +8,16 @@ export ZSH="$HOME/.oh-my-zsh"
 # ========================================
 # 🖥️  호스트 체크 함수
 # ========================================
+is_mac() {
+    [[ "$(uname -s)" == "Darwin" ]]
+}
+
 is_wsl() {
     [[ $(uname -r) == *"microsoft"* ]] || [[ $(uname -r) == *"WSL"* ]]
+}
+
+is_linux() {
+    [[ "$(uname -s)" == "Linux" ]] && ! is_wsl
 }
 
 # ========================================
@@ -27,7 +35,7 @@ source $ZSH/oh-my-zsh.sh
 # ========================================
 # 🖥️  Mac 전용 설정
 # ========================================
-if ! is_wsl; then
+if is_mac; then
     # zsh-syntax-highlighting (Mac Homebrew)
     if [ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
         source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
@@ -76,7 +84,34 @@ if is_wsl; then
 fi
 
 # ========================================
-# 🔧 공통 설정 (Mac & WSL 모두)
+# 🐧 Linux 전용 설정
+# ========================================
+if is_linux; then
+    # zsh-syntax-highlighting (Linux)
+    ZSH_SYNTAX_LINUX="$ZSH_CUSTOM/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+    if [ -f "$ZSH_SYNTAX_LINUX" ]; then
+        source "$ZSH_SYNTAX_LINUX"
+    fi
+
+    # NVM (Node Version Manager)
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+    # Go 설정 (prerequisites에서 설치한 경우)
+    if [ -d "/usr/local/go" ]; then
+        export PATH=$PATH:/usr/local/go/bin
+        export PATH=$PATH:$HOME/go/bin
+    fi
+
+    export PATH="$PATH:$HOME/.local/bin"
+
+    # Linux 터미널 색상 설정
+    export TERM=xterm-256color
+fi
+
+# ========================================
+# 🔧 공통 설정 (Mac & Linux 모두)
 # ========================================
 
 # fzf
@@ -181,12 +216,21 @@ fi
 # 🎨 프롬프트 커스터마이징
 # ========================================
 
-if is_wsl; then
+if is_mac; then
+    PROMPT='%{$fg_bold[cyan]%}[MAC]%{$reset_color%} %{$fg[cyan]%}[%*]%{$reset_color%}
+╭─%{$fg[cyan]%}%n%{$reset_color%}@ %{$fg[green]%}%3~%{$reset_color%}$(git_prompt_info)
+╰─%(!.#.$) '
+elif is_wsl; then
     PROMPT='%{$fg_bold[yellow]%}[WSL]%{$reset_color%} %{$fg[cyan]%}[%*]%{$reset_color%}
 ╭─%{$fg[cyan]%}%n%{$reset_color%}@ %{$fg[green]%}%3~%{$reset_color%}$(git_prompt_info)
 ╰─%(!.#.$) '
+elif is_linux; then
+    PROMPT='%{$fg_bold[green]%}[LINUX]%{$reset_color%} %{$fg[cyan]%}[%*]%{$reset_color%}
+╭─%{$fg[cyan]%}%n%{$reset_color%}@ %{$fg[green]%}%3~%{$reset_color%}$(git_prompt_info)
+╰─%(!.#.$) '
 else
-    PROMPT='%{$fg_bold[cyan]%}[MAC]%{$reset_color%} %{$fg[cyan]%}[%*]%{$reset_color%}
+    # Fallback (알 수 없는 환경)
+    PROMPT='%{$fg[cyan]%}[%*]%{$reset_color%}
 ╭─%{$fg[cyan]%}%n%{$reset_color%}@ %{$fg[green]%}%3~%{$reset_color%}$(git_prompt_info)
 ╰─%(!.#.$) '
 fi

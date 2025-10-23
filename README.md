@@ -9,6 +9,13 @@
 ```
 dotfiles/
 ├── README.md                    # 이 파일
+├── prerequisites/               # ✅ 필수 프로그램 설치 (최우선!)
+│   ├── README.md
+│   ├── install.sh              # 전체 자동 설치
+│   ├── install-runtimes.sh     # Go, Node.js, Python
+│   ├── install-docker.sh       # Docker
+│   ├── install-k8s-tools.sh    # kubectl, helm
+│   └── install-devops-tools.sh # terraform, jq, yq 등
 ├── zsh/                         # ✅ Zsh + Oh-My-Zsh 설정
 │   ├── README.md
 │   ├── install.sh              # 자동 설치 (Mac/Ubuntu)
@@ -42,18 +49,37 @@ dotfiles/
 
 ## 🚀 빠른 시작
 
-### 권장 설치 순서
+### ⚠️ 중요: 설치 순서를 반드시 따르세요!
 
-#### 1. Zsh 설정 (최우선!)
+#### 0. Prerequisites 설치 (최우선!)
+
+```bash
+cd prerequisites
+./install.sh
+```
+
+**왜 먼저?**
+- Go, Node.js, Python 등 런타임 설치
+- nvim의 LSP 서버들이 이 런타임들을 필요로 함
+- Docker, kubectl, helm 등 필수 도구 설치
+- 없으면 nvim에서 자동완성, 에러 검증 등이 작동하지 않음
+
+자세한 내용은 [prerequisites/README.md](prerequisites/README.md) 참고
+
+---
+
+#### 1. Zsh 설정
+
 ```bash
 cd zsh
 ./install.sh
 ```
 
-쉘 환경을 먼저 설정해야 다른 도구들이 제대로 작동합니다.
+쉘 환경을 설정해야 다른 도구들이 제대로 작동합니다.
 자세한 내용은 [zsh/README.md](zsh/README.md) 참고
 
 #### 2. kubectl 설정
+
 ```bash
 cd kubectl
 ./install.sh
@@ -63,6 +89,7 @@ Kubernetes CLI 생산성 향상
 자세한 내용은 [kubectl/README.md](kubectl/README.md) 참고
 
 #### 3. kubectx + kubens
+
 ```bash
 cd kubectx
 ./install.sh
@@ -71,28 +98,59 @@ cd kubectx
 컨텍스트/네임스페이스 빠른 전환
 자세한 내용은 [kubectx/README.md](kubectx/README.md) 참고
 
-#### 4. AWS CLI 설정 (선택사항)
+#### 4. Neovim (DevOps 특화)
+
 ```bash
-cd aws
+cd nvim
 ./install.sh
 ```
 
-AWS CLI를 사용하는 경우만 설치
-자세한 내용은 [aws/README.md](aws/README.md) 참고
+Cloud Native DevOps 통합 에디터
+자세한 내용은 [nvim/README.md](nvim/README.md) 참고
+
+#### 5. 선택사항
+
+```bash
+# AWS CLI 사용 시
+cd aws
+./install.sh
+
+# Vim 사용 시
+cd vim
+./install.sh
+```
+
+---
 
 ### 한 번에 설치
+
 ```bash
-# 순서대로 설치 (AWS는 선택)
+# 빈 우분투에서 실행 (권장)
 cd ~/dotfiles
+cd prerequisites && ./install.sh && cd ..
 cd zsh && ./install.sh && cd ..
 cd kubectl && ./install.sh && cd ..
 cd kubectx && ./install.sh && cd ..
-cd aws && ./install.sh && cd ..  # 선택사항
+cd nvim && ./install.sh && cd ..
+
+# 선택사항
+cd aws && ./install.sh && cd ..  # AWS CLI 사용 시
+cd vim && ./install.sh && cd ..  # Vim 사용 시
 ```
 
 ---
 
 ## ✅ 완료된 설정
+
+### prerequisites (최우선!)
+- ✅ Go (최신 stable 버전 자동 감지)
+- ✅ Node.js + npm (nvm으로 LTS 설치)
+- ✅ Python3 + pip
+- ✅ Docker (Mac/Linux 자동 설치)
+- ✅ kubectl + helm (최신 버전)
+- ✅ terraform, jq, yq, yamllint, hadolint
+- ✅ Mac/Linux 자동 감지
+- ✅ 공식 설치 방법 사용 (최신 버전 자동 감지)
 
 ### zsh
 - ✅ Zsh + Oh-My-Zsh 자동 설치
@@ -118,11 +176,13 @@ cd aws && ./install.sh && cd ..  # 선택사항
 - ✅ 안전한 삭제 (확인 메시지)
 
 ### nvim
-- ✅ DevOps 특화 Neovim 설정
+- ✅ Cloud Native DevOps 특화 (37개 플러그인, 942줄)
+- ✅ Kubernetes/Helm/Terraform/Docker 통합
 - ✅ LSP (Go, Python, Terraform, YAML, Bash, Docker)
+- ✅ REST API 테스트, JSON/YAML 변환
 - ✅ 프로덕션 안전 기능 (자동 테마 변경)
-- ✅ Telescope, NvimTree, Git 통합
-- ✅ 4가지 테마 자동 전환
+- ✅ kubectl UI, Git diffview, TODO 관리
+- ✅ VSCode 완전 대체 가능
 
 ### vim
 - ✅ Go 개발 환경
@@ -158,6 +218,12 @@ cd aws && ./install.sh && cd ..  # 선택사항
 
 ## 📝 업데이트 내역
 
+- **2024.10.23**: prerequisites 모듈 추가 (필수 프로그램 자동 설치)
+  - Go, Node.js, Python 런타임 (최신 버전 자동 감지)
+  - Docker (Mac/Linux 자동 설치)
+  - kubectl, helm (최신 stable)
+  - terraform, jq, yq, yamllint, hadolint
+  - 공식 설치 방법 사용, 최신 버전 자동 감지
 - 2024.10.23: nvim, vim 모듈 추가 (DevOps 특화, Go 개발)
 - 2024.10.23: aws 모듈 추가 (zsh에서 분리, 선택적 설치)
 - 2024.10.23: zsh 설정 추가 (K8s 통합, Mac/WSL 분기)

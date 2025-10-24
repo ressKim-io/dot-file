@@ -68,79 +68,14 @@ vim.opt.rtp:prepend(lazypath)
 -- 플러그인 설정
 -- ============================================================================
 require("lazy").setup({
-  -- LSP 기본 설정
+  -- LSP 기본 설정 (nvim 0.11+ 새로운 방식)
   {
     "neovim/nvim-lspconfig",
     config = function()
-      local servers = {
-        gopls = {},
-        pyright = {},
-        ts_ls = {},
-        terraformls = {},
-        tflint = {},
-        yamlls = {
-          settings = {
-            yaml = {
-              schemas = {
-                -- Kubernetes
-                kubernetes = {
-                  "*.k8s.yaml",
-                  "k8s/**/*.yaml",
-                  "kubernetes/**/*.yaml",
-                  "deploy*.yaml",
-                  "deployment*.yaml",
-                  "service*.yaml",
-                  "ingress*.yaml",
-                  "configmap*.yaml",
-                  "secret*.yaml",
-                },
-                -- Helm
-                ["https://json.schemastore.org/helmfile"] = "helmfile*.yaml",
-                ["https://json.schemastore.org/chart"] = "Chart.yaml",
-                ["https://json.schemastore.org/helmvalues"] = "values*.yaml",
-                -- ArgoCD
-                ["https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/crds/application-crd.yaml"] = {
-                  "argocd/application*.yaml",
-                  "**/argo*/application*.yaml",
-                },
-                ["https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/crds/appproject-crd.yaml"] = {
-                  "argocd/appproject*.yaml",
-                  "**/argo*/appproject*.yaml",
-                },
-                -- CI/CD
-                ["http://json.schemastore.org/github-workflow"] = ".github/workflows/*",
-                ["https://gitlab.com/gitlab-org/gitlab/-/raw/master/app/assets/javascripts/editor/schema/ci.json"] = ".gitlab-ci.yml",
-                -- Docker
-                ["http://json.schemastore.org/docker-compose"] = {
-                  "docker-compose*.yml",
-                  "docker-compose*.yaml",
-                  "compose*.yml",
-                  "compose*.yaml",
-                },
-                -- Kustomize
-                ["https://json.schemastore.org/kustomization"] = "kustomization.yaml",
-              },
-              format = {
-                enable = true,
-              },
-              validate = true,
-              completion = true,
-              hover = true,
-            },
-          }
-        },
-        bashls = {},
-        dockerls = {},
-      }
-
-      for server, config in pairs(servers) do
-        vim.lsp.config(server, config)
-        vim.lsp.enable(server)
-      end
-      
+      -- LSP 키맵 설정 (LspAttach 이벤트 사용)
       vim.api.nvim_create_autocmd('LspAttach', {
         callback = function(args)
-          local opts = { buffer = args.buf }
+          local opts = { buffer = args.buf, noremap = true, silent = true }
           vim.keymap.set('n', 'gd', vim.lsp.buf.definition, vim.tbl_extend('force', opts, {desc = 'Go to definition'}))
           vim.keymap.set('n', 'K', vim.lsp.buf.hover, vim.tbl_extend('force', opts, {desc = 'Hover documentation'}))
           vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, vim.tbl_extend('force', opts, {desc = 'Rename'}))
@@ -148,6 +83,73 @@ require("lazy").setup({
           vim.keymap.set('n', 'gr', vim.lsp.buf.references, vim.tbl_extend('force', opts, {desc = 'References'}))
         end,
       })
+
+      -- 공통 capabilities
+      local capabilities = require('cmp_nvim_lsp').default_capabilities()
+
+      -- 서버별 설정 (nvim 0.11+ 새로운 방식)
+      vim.lsp.config('gopls', { capabilities = capabilities })
+      vim.lsp.config('pyright', { capabilities = capabilities })
+      vim.lsp.config('ts_ls', { capabilities = capabilities })
+      vim.lsp.config('terraformls', { capabilities = capabilities })
+      vim.lsp.config('tflint', { capabilities = capabilities })
+      vim.lsp.config('yamlls', {
+        capabilities = capabilities,
+        settings = {
+          yaml = {
+            schemas = {
+              -- Kubernetes
+              kubernetes = {
+                "*.k8s.yaml",
+                "k8s/**/*.yaml",
+                "kubernetes/**/*.yaml",
+                "deploy*.yaml",
+                "deployment*.yaml",
+                "service*.yaml",
+                "ingress*.yaml",
+                "configmap*.yaml",
+                "secret*.yaml",
+              },
+              -- Helm
+              ["https://json.schemastore.org/helmfile"] = "helmfile*.yaml",
+              ["https://json.schemastore.org/chart"] = "Chart.yaml",
+              ["https://json.schemastore.org/helmvalues"] = "values*.yaml",
+              -- ArgoCD
+              ["https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/crds/application-crd.yaml"] = {
+                "argocd/application*.yaml",
+                "**/argo*/application*.yaml",
+              },
+              ["https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/crds/appproject-crd.yaml"] = {
+                "argocd/appproject*.yaml",
+                "**/argo*/appproject*.yaml",
+              },
+              -- CI/CD
+              ["http://json.schemastore.org/github-workflow"] = ".github/workflows/*",
+              ["https://gitlab.com/gitlab-org/gitlab/-/raw/master/app/assets/javascripts/editor/schema/ci.json"] = ".gitlab-ci.yml",
+              -- Docker
+              ["http://json.schemastore.org/docker-compose"] = {
+                "docker-compose*.yml",
+                "docker-compose*.yaml",
+                "compose*.yml",
+                "compose*.yaml",
+              },
+              -- Kustomize
+              ["https://json.schemastore.org/kustomization"] = "kustomization.yaml",
+            },
+            format = {
+              enable = true,
+            },
+            validate = true,
+            completion = true,
+            hover = true,
+          },
+        }
+      })
+      vim.lsp.config('bashls', { capabilities = capabilities })
+      vim.lsp.config('dockerls', { capabilities = capabilities })
+
+      -- LSP 서버 활성화
+      vim.lsp.enable({'gopls', 'pyright', 'ts_ls', 'terraformls', 'tflint', 'yamlls', 'bashls', 'dockerls'})
     end
   },
 
@@ -450,7 +452,7 @@ require("lazy").setup({
   {
     "iamcco/markdown-preview.nvim",
     ft = "markdown",
-    build = function() vim.fn["mkdp#util#install"]() end,
+    build = "cd app && npm install",
     config = function()
       vim.keymap.set('n', '<leader>mp', ':MarkdownPreview<CR>', {desc = 'Markdown Preview'})
     end
@@ -480,26 +482,18 @@ require("lazy").setup({
     ft = "helm",
   },
 
-  -- REST API 테스트 (curl 대체)
-  {
-    "rest-nvim/rest.nvim",
-    dependencies = { "nvim-lua/plenary.nvim" },
-    ft = "http",
-    config = function()
-      require("rest-nvim").setup({
-        result_split_horizontal = false,
-        result_split_in_place = false,
-        skip_ssl_verification = false,
-        encode_url = true,
-        highlight = {
-          enabled = true,
-          timeout = 150,
-        },
-      })
-      vim.keymap.set('n', '<leader>rr', ':lua require("rest-nvim").run()<CR>', {desc = 'Run REST request'})
-      vim.keymap.set('n', '<leader>rl', ':lua require("rest-nvim").last()<CR>', {desc = 'Run last REST'})
-    end
-  },
+  -- REST API 테스트 (curl 대체) - build 문제로 비활성화
+  -- 필요시 직접 설치: https://github.com/rest-nvim/rest.nvim
+  -- {
+  --   "rest-nvim/rest.nvim",
+  --   dependencies = { "nvim-lua/plenary.nvim" },
+  --   ft = "http",
+  --   build = "make",
+  --   config = function()
+  --     require("rest-nvim").setup()
+  --     vim.keymap.set('n', '<leader>rr', ':lua require("rest-nvim").run()<CR>', {desc = 'Run REST request'})
+  --   end
+  -- },
 
   -- Terraform 고급 기능
   {
@@ -512,19 +506,11 @@ require("lazy").setup({
     end
   },
 
-  -- Dockerfile 린팅 (hadolint)
-  {
-    "hadolint/hadolint",
-    ft = "dockerfile",
-  },
+  -- Dockerfile 지원 (hadolint는 별도 설치 필요)
+  -- hadolint 설치: sudo apt install hadolint (Linux) or brew install hadolint (Mac)
 
-  -- 환경변수 하이라이트
-  {
-    "ErichDonGubler/dotenv.nvim",
-    config = function()
-      require('dotenv').setup()
-    end
-  },
+  -- 환경변수 하이라이트 (dotenv 파일용)
+  -- 간단한 syntax highlighting만 사용
 
   -- Git 고급 기능 (Diffview)
   {
@@ -537,10 +523,6 @@ require("lazy").setup({
     end
   },
 
-  -- HTTP 파일 문법 강조
-  {
-    "rest-nvim/rest.nvim",
-  },
 
   -- Kubernetes 리소스 미리보기 (선택적 - kubectl 필요)
   {

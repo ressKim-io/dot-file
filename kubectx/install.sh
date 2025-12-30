@@ -72,10 +72,11 @@ if [ "$MACHINE" = "Mac" ]; then
 # Linux 설치
 elif [ "$MACHINE" = "Linux" ]; then
   echo "📦 수동 설치 시작..."
-  
-  INSTALL_DIR="/opt/kubectx"
+
+  # 사용자 홈 디렉토리에 설치 (보안 향상)
+  INSTALL_DIR="$HOME/.kubectx"
   BIN_DIR="/usr/local/bin"
-  
+
   # 기존 설치 확인
   if [ -d "$INSTALL_DIR" ]; then
     echo "⚠️  $INSTALL_DIR 가 이미 존재합니다."
@@ -87,10 +88,10 @@ elif [ "$MACHINE" = "Linux" ]; then
       exit 0
     fi
     echo "🗑️  기존 설치 제거 중..."
-    sudo rm -rf "$INSTALL_DIR"
+    rm -rf "$INSTALL_DIR"
     sudo rm -f "$BIN_DIR/kubectx" "$BIN_DIR/kubens"
   fi
-  
+
   # Git 확인
   if ! command -v git &> /dev/null; then
     echo "❌ git이 설치되어 있지 않습니다."
@@ -111,17 +112,15 @@ elif [ "$MACHINE" = "Linux" ]; then
       exit 1
     fi
   fi
-  
+
   echo "📦 다운로드 중..."
-  sudo git clone https://github.com/ahmetb/kubectx.git "$INSTALL_DIR"
-  
+  # 사용자 권한으로 클론 (보안 향상)
+  git clone https://github.com/ahmetb/kubectx.git "$INSTALL_DIR"
+
   echo "🔗 심볼릭 링크 생성 중..."
   sudo ln -sf "$INSTALL_DIR/kubectx" "$BIN_DIR/kubectx"
   sudo ln -sf "$INSTALL_DIR/kubens" "$BIN_DIR/kubens"
-  
-  # 실행 권한 부여
-  sudo chmod +x "$BIN_DIR/kubectx" "$BIN_DIR/kubens"
-  
+
   echo ""
   echo "✅ 설치 완료!"
   echo ""

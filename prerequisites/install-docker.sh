@@ -18,6 +18,22 @@ esac
 echo "✅ 감지된 OS: $MACHINE"
 echo ""
 
+# Linux에서 필수 도구 체크 및 설치
+if [ "$MACHINE" = "Linux" ]; then
+  # 패키지 매니저로 기본 도구 설치 (없으면)
+  if ! command -v curl &> /dev/null || ! command -v gpg &> /dev/null; then
+    echo "📦 Docker 설치에 필요한 기본 도구 설치 중..."
+    if command -v apt-get &> /dev/null; then
+      sudo apt-get update -qq
+      sudo apt-get install -y curl gnupg ca-certificates lsb-release 2>/dev/null || true
+    elif command -v yum &> /dev/null; then
+      sudo yum install -y curl gnupg2 ca-certificates 2>/dev/null || true
+    elif command -v dnf &> /dev/null; then
+      sudo dnf install -y curl gnupg2 ca-certificates 2>/dev/null || true
+    fi
+  fi
+fi
+
 # ========================================
 # Docker 설치 확인
 # ========================================
@@ -104,9 +120,18 @@ elif [ "$MACHINE" = "Linux" ]; then
 
     # Docker 리포지토리 추가
     echo "📦 Docker 리포지토리 추가 중..."
+    # lsb_release가 없을 경우 /etc/os-release에서 읽기
+    if command -v lsb_release &> /dev/null; then
+      DISTRO_CODENAME=$(lsb_release -cs)
+    elif [ -f /etc/os-release ]; then
+      DISTRO_CODENAME=$(. /etc/os-release && echo "$VERSION_CODENAME")
+    else
+      echo "❌ 배포판 코드명을 확인할 수 없습니다."
+      exit 1
+    fi
     echo \
       "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-      $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+      $DISTRO_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
     # Docker 설치
     echo "📥 Docker Engine 설치 중..."

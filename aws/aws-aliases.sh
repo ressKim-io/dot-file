@@ -63,14 +63,21 @@ ec2rm() {
 }
 
 # EC2 SSH 접속 (Public IP 자동 추출)
+# 사용법: ec2ssh <instance-id> [key-path] [username]
+# username: ec2-user (Amazon Linux), ubuntu (Ubuntu), admin (Debian), root (some AMIs)
 ec2ssh() {
   if [ -z "$1" ]; then
-    echo "Usage: ec2ssh <instance-id> [key-path]"
+    echo "Usage: ec2ssh <instance-id> [key-path] [username]"
+    echo ""
+    echo "Examples:"
+    echo "  ec2ssh i-1234567890abcdef0                    # Amazon Linux (ec2-user)"
+    echo "  ec2ssh i-1234567890abcdef0 ~/.ssh/key.pem ubuntu  # Ubuntu"
     return 1
   fi
 
   local instance_id="$1"
-  local key_path="${2:-~/.ssh/aws-key.pem}"  # 기본값
+  local key_path="${2:-~/.ssh/aws-key.pem}"  # 기본 키 경로
+  local username="${3:-ec2-user}"  # 기본 사용자 (AMI에 따라 변경)
 
   local ip=$(aws ec2 describe-instances \
     --instance-ids "$instance_id" \
@@ -82,8 +89,8 @@ ec2ssh() {
     return 1
   fi
 
-  echo "🔗 Connecting to $ip..."
-  ssh -i "$key_path" ec2-user@"$ip"
+  echo "🔗 Connecting to ${username}@${ip}..."
+  ssh -i "$key_path" "${username}@${ip}"
 }
 
 # 월간 비용 리포트 (⭐⭐⭐ 팀장님이 좋아함)

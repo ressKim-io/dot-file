@@ -7,6 +7,35 @@ echo "🔧 런타임 설치 (Go, Node.js, Python)"
 echo "=========================================="
 echo ""
 
+# 필수 도구 체크
+check_prerequisites() {
+  local missing=""
+  for cmd in curl git; do
+    if ! command -v $cmd &> /dev/null; then
+      missing="$missing $cmd"
+    fi
+  done
+  if [ -n "$missing" ]; then
+    echo "❌ 필수 도구가 없습니다:$missing"
+    echo ""
+    echo "💡 해결 방법:"
+    echo "   1. prerequisites/install.sh를 먼저 실행하세요 (권장)"
+    echo "      cd prerequisites && ./install.sh"
+    echo ""
+    echo "   2. 또는 수동 설치:"
+    echo "      Ubuntu/Debian: sudo apt-get update && sudo apt-get install -y curl git"
+    echo "      CentOS/RHEL:   sudo yum install -y curl git"
+    echo "      Mac:           brew install curl git"
+    exit 1
+  fi
+}
+
+check_prerequisites
+
+# Fallback 버전 (API 실패 시 사용)
+FALLBACK_NVM_VERSION="v0.40.1"
+FALLBACK_GO_VERSION="go1.23.4"
+
 # OS 감지
 OS="$(uname -s)"
 case "${OS}" in
@@ -15,7 +44,15 @@ case "${OS}" in
     *)          MACHINE="UNKNOWN:${OS}"
 esac
 
-echo "✅ 감지된 OS: $MACHINE"
+# 아키텍처 감지
+ARCH=$(uname -m)
+case $ARCH in
+  x86_64) ARCH_SUFFIX="amd64" ;;
+  aarch64|arm64) ARCH_SUFFIX="arm64" ;;
+  *) ARCH_SUFFIX="amd64" ;;
+esac
+
+echo "✅ 감지된 OS: $MACHINE ($ARCH)"
 echo ""
 
 # ========================================
@@ -43,17 +80,26 @@ else
       exit 1
     fi
   elif [ "$MACHINE" = "Linux" ]; then
-    # 최신 버전 자동 감지
-    GO_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -n1)
+    # 최신 버전 자동 감지 (실패 시 fallback 사용)
+    GO_VERSION=$(curl -s --connect-timeout 10 https://go.dev/VERSION?m=text | head -n1)
+    if [ -z "$GO_VERSION" ] || [[ ! "$GO_VERSION" =~ ^go ]]; then
+      echo "⚠️  Go 버전 확인 실패, fallback 버전 사용: $FALLBACK_GO_VERSION"
+      GO_VERSION="$FALLBACK_GO_VERSION"
+    fi
     echo "📥 Go $GO_VERSION 다운로드 중..."
 
     cd /tmp
-    wget -q "https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz"
+    GO_ARCHIVE="${GO_VERSION}.linux-${ARCH_SUFFIX}.tar.gz"
+    if ! curl -LO --fail "https://go.dev/dl/${GO_ARCHIVE}"; then
+      echo "❌ Go 다운로드 실패"
+      echo "   수동 설치: https://go.dev/dl/"
+      exit 1
+    fi
 
     # 기존 설치 제거 및 설치
     sudo rm -rf /usr/local/go
-    sudo tar -C /usr/local -xzf "${GO_VERSION}.linux-amd64.tar.gz"
-    rm "${GO_VERSION}.linux-amd64.tar.gz"
+    sudo tar -C /usr/local -xzf "${GO_ARCHIVE}"
+    rm "${GO_ARCHIVE}"
 
     # PATH 설정 (zshrc 또는 bashrc)
     if [ -f "$HOME/.zshrc" ]; then
@@ -99,21 +145,39 @@ else
 
   # nvm 설치 확인
   if [ ! -d "$HOME/.nvm" ]; then
-    # 최신 nvm 버전 자동 감지
-    NVM_VERSION=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+    # 최신 nvm 버전 자동 감지 (실패 시 fallback 사용)
+    NVM_VERSION=$(curl -s --connect-timeout 10 https://api.github.com/repos/nvm-sh/nvm/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+    if [ -z "$NVM_VERSION" ] || [[ ! "$NVM_VERSION" =~ ^v ]]; then
+      echo "⚠️  NVM 버전 확인 실패, fallback 버전 사용: $FALLBACK_NVM_VERSION"
+      NVM_VERSION="$FALLBACK_NVM_VERSION"
+    fi
     echo "📥 nvm $NVM_VERSION 설치 중..."
 
-    curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | bash
-
-    # nvm 로드
-    export NVM_DIR="$HOME/.nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    if ! curl -o- --fail "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | bash; then
+      echo "❌ nvm 설치 실패"
+      echo "   수동 설치: https://github.com/nvm-sh/nvm#installing-and-updating"
+      exit 1
+    fi
 
     echo "✅ nvm 설치 완료"
   else
     echo "✅ nvm 이미 설치됨"
-    export NVM_DIR="$HOME/.nvm"
+  fi
+
+  # nvm 로드 (여러 번 시도)
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+  # nvm 명령어 확인
+  if ! command -v nvm &> /dev/null; then
+    echo "   nvm 로딩 재시도 중..."
+    sleep 2
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  fi
+
+  if ! command -v nvm &> /dev/null; then
+    echo "❌ nvm 로드 실패. 터미널을 재시작한 후 다시 시도해주세요."
+    exit 1
   fi
 
   # Node.js LTS 설치
@@ -173,10 +237,22 @@ else
   echo "📥 pip3 설치 중..."
 
   if [ "$MACHINE" = "Linux" ]; then
-    sudo apt-get install -y python3-pip
+    if command -v apt-get &> /dev/null; then
+      sudo apt-get install -y python3-pip
+    elif command -v yum &> /dev/null; then
+      sudo yum install -y python3-pip
+    elif command -v dnf &> /dev/null; then
+      sudo dnf install -y python3-pip
+    elif command -v pacman &> /dev/null; then
+      sudo pacman -S --noconfirm python-pip
+    else
+      echo "⚠️  pip3 자동 설치 실패. 수동으로 설치해주세요."
+    fi
   fi
 
-  echo "✅ pip3 설치 완료"
+  if command -v pip3 &> /dev/null; then
+    echo "✅ pip3 설치 완료"
+  fi
 fi
 
 echo ""

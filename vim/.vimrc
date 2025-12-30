@@ -4,20 +4,19 @@ set nu "줄번호
 set autoindent "자동 들여쓰기
 set paste "붙여넣기 계단현상 없애기
 
-"theme 변경
-colorscheme gruvbox 
-
-call plug#begin('~/.vim/plugged')
-  Plug 'preservim/nerdtree'
-call plug#end()
-
 " -------------
 " vim-go setting
 " -------------
-filetype plugin indent on 
+filetype plugin indent on
 
-" vim-Plug Plugin List
+" vim-Plug Plugin List (하나의 블록으로 통합)
 call plug#begin('~/.vim/plugged')
+
+" 파일 탐색
+Plug 'preservim/nerdtree'
+
+" 테마
+Plug 'morhetz/gruvbox'
 
 " 자동완성을 해주는 Plugin이다. 많은 Launguge를 지원하고 :CoCInstall coc-<lang> 으로 지원되는 Languge 설치가 가능
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -30,7 +29,7 @@ Plug 'tpope/vim-fugitive'
 " Vim-go를 사용하기 위한 Plugin
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 
-" 나만의 자동 완성을 만들수 있는 Plugin 이다. 
+" 나만의 자동 완성을 만들수 있는 Plugin 이다.
 Plug 'SirVer/ultisnips'
 
 " 편의
@@ -39,11 +38,14 @@ Plug 'AndrewRadev/splitjoin.vim'
 Plug 'mhinz/vim-startify'
 
 " preview를 해주는 유용한 plugin
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' } " fzf 사용시 꼭 설치하고 ~/.fzf 에 들어가서 ./install --all 하자
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 
 " Initialize plugin system
 call plug#end()
+
+" 테마 변경 (gruvbox 플러그인 설치 후 적용)
+silent! colorscheme gruvbox
 
 " 저장할 때 자동으로 formatting 및 import from https://johngrib.github.io/
 let g:go_fmt_command = "goimports"

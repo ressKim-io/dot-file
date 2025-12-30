@@ -37,20 +37,33 @@ source $ZSH/oh-my-zsh.sh
 # ========================================
 if is_mac; then
     # zsh-syntax-highlighting (Mac Homebrew)
+    # Apple Silicon (M1/M2/M3)
     if [ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
         source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+    # Intel Mac
+    elif [ -f /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+        source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
     fi
 
-    # brew add
-    export PATH=/opt/homebrew/bin:$PATH
+    # Homebrew paths (Apple Silicon and Intel)
+    if [ -d /opt/homebrew/bin ]; then
+        export PATH=/opt/homebrew/bin:$PATH
+        export HOMEBREW_PREFIX="/opt/homebrew"
+    elif [ -d /usr/local/Homebrew ]; then
+        export PATH=/usr/local/bin:$PATH
+        export HOMEBREW_PREFIX="/usr/local"
+    fi
 
-    # python root add
-    alias python=/opt/homebrew/bin/python3
-    alias py=/opt/homebrew/bin/python3
+    # python alias (경로 자동 감지)
+    if [ -f "$HOMEBREW_PREFIX/bin/python3" ]; then
+        alias python="$HOMEBREW_PREFIX/bin/python3"
+        alias py="$HOMEBREW_PREFIX/bin/python3"
+    fi
 
     # Ruby (Mac Homebrew)
-    export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
-    export PATH="/opt/homebrew/lib/ruby/gems/3.3.0/bin:$PATH"
+    if [ -d "$HOMEBREW_PREFIX/opt/ruby/bin" ]; then
+        export PATH="$HOMEBREW_PREFIX/opt/ruby/bin:$PATH"
+    fi
 
     # Ruby gems
     if command -v gem > /dev/null 2>&1; then

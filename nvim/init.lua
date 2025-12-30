@@ -55,7 +55,7 @@ vim.g.mapleader = " "
 -- 패키지 매니저 설치 (lazy.nvim)
 -- ============================================================================
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
   vim.fn.system({
     "git", "clone", "--filter=blob:none",
     "https://github.com/folke/lazy.nvim.git",
@@ -124,10 +124,10 @@ require("lazy").setup({
                 "**/argo*/appproject*.yaml",
               },
               -- CI/CD
-              ["http://json.schemastore.org/github-workflow"] = ".github/workflows/*",
+              ["https://json.schemastore.org/github-workflow"] = ".github/workflows/*",
               ["https://gitlab.com/gitlab-org/gitlab/-/raw/master/app/assets/javascripts/editor/schema/ci.json"] = ".gitlab-ci.yml",
               -- Docker
-              ["http://json.schemastore.org/docker-compose"] = {
+              ["https://json.schemastore.org/docker-compose"] = {
                 "docker-compose*.yml",
                 "docker-compose*.yaml",
                 "compose*.yml",
@@ -219,13 +219,7 @@ require("lazy").setup({
     end
   },
 
-  -- Git 통합
-  {
-    "lewis6991/gitsigns.nvim",
-    config = function()
-      require('gitsigns').setup()
-    end
-  },
+  -- Git 통합 (아래 Git Blame 섹션에서 설정)
 
   -- 터미널
   {
@@ -254,15 +248,7 @@ require("lazy").setup({
     end
   },
 
-  -- Terraform
-  {
-    "hashivim/vim-terraform",
-    ft = {"terraform", "hcl"},
-    config = function()
-      vim.g.terraform_fmt_on_save = 1
-      vim.g.terraform_align = 1
-    end
-  },
+  -- Terraform (아래 Terraform 고급 기능 섹션에서 설정)
 
   -- ========================================
   -- 🎨 여러 테마 동시 설치 (실무 DevOps)

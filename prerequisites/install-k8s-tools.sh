@@ -15,8 +15,36 @@ case "${OS}" in
     *)          MACHINE="UNKNOWN:${OS}"
 esac
 
-echo "✅ 감지된 OS: $MACHINE"
+# 아키텍처 감지
+ARCH=$(uname -m)
+case $ARCH in
+  x86_64) ARCH_SUFFIX="amd64" ;;
+  aarch64|arm64) ARCH_SUFFIX="arm64" ;;
+  *) ARCH_SUFFIX="amd64" ;;
+esac
+
+echo "✅ 감지된 OS: $MACHINE ($ARCH)"
 echo ""
+
+# Fallback 버전 (API 실패 시 사용)
+FALLBACK_KUBECTL_VERSION="v1.32.0"
+
+# 필수 도구 체크 및 설치
+if [ "$MACHINE" = "Linux" ]; then
+  if ! command -v curl &> /dev/null; then
+    echo "📦 curl 설치 중..."
+    if command -v apt-get &> /dev/null; then
+      sudo apt-get update -qq && sudo apt-get install -y curl
+    elif command -v yum &> /dev/null; then
+      sudo yum install -y curl
+    elif command -v dnf &> /dev/null; then
+      sudo dnf install -y curl
+    else
+      echo "❌ curl이 필요합니다. 먼저 설치해주세요."
+      exit 1
+    fi
+  fi
+fi
 
 # ========================================
 # 1. kubectl 설치
@@ -42,17 +70,29 @@ else
       exit 1
     fi
   elif [ "$MACHINE" = "Linux" ]; then
-    # 최신 stable 버전 자동 감지
-    KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+    # 최신 stable 버전 자동 감지 (실패 시 fallback 사용)
+    KUBECTL_VERSION=$(curl -L -s --connect-timeout 10 https://dl.k8s.io/release/stable.txt)
+    if [ -z "$KUBECTL_VERSION" ] || [[ ! "$KUBECTL_VERSION" =~ ^v ]]; then
+      echo "⚠️  kubectl 버전 확인 실패, fallback 버전 사용: $FALLBACK_KUBECTL_VERSION"
+      KUBECTL_VERSION="$FALLBACK_KUBECTL_VERSION"
+    fi
     echo "📥 kubectl $KUBECTL_VERSION 다운로드 중..."
 
     cd /tmp
-    curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
-    curl -LO "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd64/kubectl.sha256"
+    if ! curl -LO --fail "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH_SUFFIX}/kubectl"; then
+      echo "❌ kubectl 다운로드 실패"
+      echo "   수동 설치: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/"
+      exit 1
+    fi
+    curl -LO "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${ARCH_SUFFIX}/kubectl.sha256"
 
     # 체크섬 검증
     echo "🔍 체크섬 검증 중..."
-    echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+    if ! echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check; then
+      echo "❌ 체크섬 검증 실패"
+      rm -f kubectl kubectl.sha256
+      exit 1
+    fi
 
     # 설치
     sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
@@ -90,7 +130,11 @@ else
   elif [ "$MACHINE" = "Linux" ]; then
     # 공식 설치 스크립트 사용
     echo "📥 Helm 공식 설치 스크립트 실행 중..."
-    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    if ! curl --fail https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash; then
+      echo "❌ Helm 설치 실패"
+      echo "   수동 설치: https://helm.sh/docs/intro/install/"
+      exit 1
+    fi
 
     echo "✅ Helm 설치 완료: $(helm version --short)"
   fi

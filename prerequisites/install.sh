@@ -7,6 +7,7 @@ echo "🚀 Prerequisites 전체 설치"
 echo "=========================================="
 echo ""
 echo "다음 도구들을 설치합니다:"
+echo "   0. 기본 도구: curl, wget, git, gnupg (최초 설치 시)"
 echo "   1. 런타임: Go, Node.js, Python"
 echo "   2. Docker"
 echo "   3. Kubernetes 도구: kubectl, helm"
@@ -26,6 +27,177 @@ echo ""
 
 # 스크립트 디렉토리
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# ========================================
+# 0. Bootstrap: 기본 도구 설치 (최초 설치 시 필수)
+# ========================================
+
+echo ""
+echo "=========================================="
+echo "STEP 0/4: 기본 도구 확인 및 설치"
+echo "=========================================="
+echo ""
+
+# OS 감지
+OS="$(uname -s)"
+case "${OS}" in
+    Linux*)     MACHINE=Linux;;
+    Darwin*)    MACHINE=Mac;;
+    *)          MACHINE="UNKNOWN:${OS}"
+esac
+
+echo "✅ 감지된 OS: $MACHINE"
+echo ""
+
+# sudo 권한 확인 (Linux만)
+if [ "$MACHINE" = "Linux" ]; then
+  if ! command -v sudo &> /dev/null; then
+    echo "❌ sudo가 설치되어 있지 않습니다."
+    echo "   root로 로그인하여 다음을 실행하세요:"
+    echo "   apt-get update && apt-get install -y sudo"
+    echo "   usermod -aG sudo \$USER"
+    exit 1
+  fi
+
+  # sudo 테스트 (비밀번호 필요 시 요청)
+  if ! sudo -n true 2>/dev/null; then
+    echo "📝 sudo 권한이 필요합니다. 비밀번호를 입력해주세요."
+    sudo -v || { echo "❌ sudo 권한을 얻을 수 없습니다."; exit 1; }
+  fi
+fi
+
+# 기본 도구 설치 함수
+install_basic_tools() {
+  echo "📦 기본 도구 설치 중..."
+
+  if [ "$MACHINE" = "Mac" ]; then
+    # Mac: Homebrew 확인
+    if ! command -v brew &> /dev/null; then
+      echo "❌ Homebrew가 설치되어 있지 않습니다."
+      echo ""
+      echo "Homebrew 설치 (터미널에서 실행):"
+      echo '  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+      echo ""
+      exit 1
+    fi
+
+    # curl, wget, git 설치
+    for tool in curl wget git; do
+      if ! command -v $tool &> /dev/null; then
+        echo "   📥 $tool 설치 중..."
+        brew install $tool
+      fi
+    done
+
+  elif [ "$MACHINE" = "Linux" ]; then
+    # Linux: 패키지 매니저 감지 및 설치
+    if command -v apt-get &> /dev/null; then
+      echo "   📥 apt-get으로 기본 도구 설치 중..."
+      sudo apt-get update -qq
+      sudo apt-get install -y \
+        curl \
+        wget \
+        git \
+        gnupg \
+        lsb-release \
+        ca-certificates \
+        software-properties-common \
+        apt-transport-https \
+        2>/dev/null || sudo apt-get install -y curl wget git gnupg lsb-release ca-certificates
+
+    elif command -v yum &> /dev/null; then
+      echo "   📥 yum으로 기본 도구 설치 중..."
+      sudo yum install -y \
+        curl \
+        wget \
+        git \
+        gnupg2 \
+        redhat-lsb-core \
+        ca-certificates
+
+    elif command -v dnf &> /dev/null; then
+      echo "   📥 dnf로 기본 도구 설치 중..."
+      sudo dnf install -y \
+        curl \
+        wget \
+        git \
+        gnupg2 \
+        redhat-lsb-core \
+        ca-certificates
+
+    elif command -v pacman &> /dev/null; then
+      echo "   📥 pacman으로 기본 도구 설치 중..."
+      sudo pacman -Sy --noconfirm --needed \
+        curl \
+        wget \
+        git \
+        gnupg \
+        lsb-release \
+        ca-certificates
+
+    elif command -v zypper &> /dev/null; then
+      echo "   📥 zypper로 기본 도구 설치 중..."
+      sudo zypper install -y \
+        curl \
+        wget \
+        git \
+        gpg2 \
+        lsb-release \
+        ca-certificates
+
+    else
+      echo "❌ 지원하지 않는 패키지 매니저입니다."
+      echo "   수동으로 curl, wget, git, gnupg, lsb-release를 설치해주세요."
+      exit 1
+    fi
+  fi
+}
+
+# 필수 도구 체크 함수
+check_basic_tools() {
+  local missing=""
+
+  for tool in curl wget git; do
+    if ! command -v $tool &> /dev/null; then
+      missing="$missing $tool"
+    fi
+  done
+
+  # Linux 추가 체크
+  if [ "$MACHINE" = "Linux" ]; then
+    if ! command -v gpg &> /dev/null; then
+      missing="$missing gnupg"
+    fi
+    # lsb_release는 선택사항 (없으면 대체 방법 사용)
+  fi
+
+  if [ -n "$missing" ]; then
+    echo "   ⚠️  누락된 도구:$missing"
+    return 1
+  fi
+  return 0
+}
+
+# 기본 도구 체크 및 설치
+if check_basic_tools; then
+  echo "✅ 기본 도구 확인 완료 (curl, wget, git, gnupg)"
+else
+  echo "⚠️  일부 기본 도구가 없습니다. 설치를 시작합니다..."
+  install_basic_tools
+
+  # 재확인
+  if check_basic_tools; then
+    echo "✅ 기본 도구 설치 완료"
+  else
+    echo "❌ 기본 도구 설치 실패. 수동으로 설치해주세요:"
+    echo "   Ubuntu/Debian: sudo apt-get install curl wget git gnupg lsb-release"
+    echo "   CentOS/RHEL:   sudo yum install curl wget git gnupg2"
+    echo "   Fedora:        sudo dnf install curl wget git gnupg2"
+    exit 1
+  fi
+fi
+
+echo ""
 
 # ========================================
 # 1. 런타임 설치

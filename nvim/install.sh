@@ -19,45 +19,110 @@ echo "✅ 감지된 OS: $MACHINE"
 echo ""
 
 # ========================================
-# 1. Neovim 설치
+# 1. Neovim 설치 (0.11+ 필수)
 # ========================================
 
 echo "=========================================="
-echo " 1. Neovim 설치"
+echo " 1. Neovim 설치 (0.11+ 필수)"
 echo "=========================================="
 
-if command -v nvim &> /dev/null; then
+REQUIRED_NVIM_VERSION="0.11.0"
+
+# 버전 비교 함수
+check_nvim_version() {
+  if command -v nvim &> /dev/null; then
+    CURRENT_VERSION=$(nvim --version | head -n 1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+    if [ -n "$CURRENT_VERSION" ]; then
+      # 버전 비교 (0.11.0 이상 필요)
+      if printf '%s\n' "$REQUIRED_NVIM_VERSION" "$CURRENT_VERSION" | sort -V | head -n1 | grep -q "^${REQUIRED_NVIM_VERSION}$"; then
+        return 0  # 버전 충분
+      fi
+    fi
+  fi
+  return 1  # 설치/업그레이드 필요
+}
+
+install_neovim_linux() {
+  echo "📦 Neovim 최신 버전 설치 중 (AppImage)..."
+
+  # 아키텍처 감지
+  ARCH=$(uname -m)
+  case $ARCH in
+    x86_64) NVIM_ARCH="linux-x86_64" ;;
+    aarch64|arm64) NVIM_ARCH="linux-arm64" ;;
+    *)
+      echo "❌ 지원하지 않는 아키텍처: $ARCH"
+      echo "   https://github.com/neovim/neovim/releases 에서 수동 설치해주세요."
+      exit 1
+      ;;
+  esac
+
+  # 기존 nvim 제거 (있다면)
+  if command -v nvim &> /dev/null; then
+    NVIM_PATH=$(which nvim)
+    if [ -f "$NVIM_PATH" ]; then
+      sudo rm -f "$NVIM_PATH" 2>/dev/null || true
+    fi
+  fi
+
+  # AppImage 다운로드 및 설치
+  NVIM_APPIMAGE="nvim-${NVIM_ARCH}.appimage"
+  TEMP_DIR=$(mktemp -d)
+  cd "$TEMP_DIR"
+
+  echo "   다운로드 중: $NVIM_APPIMAGE"
+  curl -LO "https://github.com/neovim/neovim/releases/latest/download/${NVIM_APPIMAGE}"
+  chmod u+x "$NVIM_APPIMAGE"
+
+  # AppImage 실행 테스트
+  if ./"$NVIM_APPIMAGE" --version &> /dev/null; then
+    # AppImage 직접 설치
+    sudo mv "$NVIM_APPIMAGE" /usr/local/bin/nvim
+    echo "✅ Neovim AppImage 설치 완료"
+  else
+    # FUSE 없는 환경: 압축 해제 방식
+    echo "⚠️  AppImage 직접 실행 불가. 압축 해제 방식으로 설치..."
+    ./"$NVIM_APPIMAGE" --appimage-extract > /dev/null 2>&1
+    sudo rm -rf /opt/neovim 2>/dev/null || true
+    sudo mv squashfs-root /opt/neovim
+    sudo ln -sf /opt/neovim/usr/bin/nvim /usr/local/bin/nvim
+    echo "✅ Neovim 압축 해제 설치 완료"
+  fi
+
+  cd - > /dev/null
+  rm -rf "$TEMP_DIR"
+}
+
+if check_nvim_version; then
   NVIM_VERSION=$(nvim --version | head -n 1)
   echo "✅ Neovim 이미 설치됨: $NVIM_VERSION"
 else
-  echo "📦 Neovim 설치 중..."
+  if command -v nvim &> /dev/null; then
+    CURRENT=$(nvim --version | head -n 1)
+    echo "⚠️  현재 Neovim 버전이 너무 낮습니다: $CURRENT"
+    echo "   0.11+ 버전으로 업그레이드합니다..."
+  else
+    echo "📦 Neovim 설치 중..."
+  fi
 
   if [ "$MACHINE" = "Mac" ]; then
     if command -v brew &> /dev/null; then
-      brew install neovim
+      brew install neovim || brew upgrade neovim
     else
       echo "❌ Homebrew가 설치되어 있지 않습니다."
       exit 1
     fi
   elif [ "$MACHINE" = "Linux" ]; then
-    # Ubuntu/Debian
-    if command -v apt-get &> /dev/null; then
-      sudo apt-get update
-      sudo apt-get install -y neovim
-    # RHEL/CentOS/Fedora
-    elif command -v yum &> /dev/null; then
-      sudo yum install -y neovim
-    # Arch Linux
-    elif command -v pacman &> /dev/null; then
-      sudo pacman -S --noconfirm neovim
-    else
-      echo "❌ 지원하지 않는 패키지 매니저입니다."
-      echo "   https://github.com/neovim/neovim/releases 에서 수동 설치해주세요."
-      exit 1
-    fi
+    install_neovim_linux
   fi
 
-  echo "✅ Neovim 설치 완료"
+  # 설치 확인
+  if check_nvim_version; then
+    echo "✅ Neovim 설치 완료: $(nvim --version | head -n 1)"
+  else
+    echo "❌ Neovim 0.11+ 설치에 실패했습니다."
+    exit 1
+  fi
 fi
 
 echo ""
@@ -190,7 +255,7 @@ if ! command -v fd &> /dev/null; then
     elif command -v apt-get &> /dev/null; then
         sudo apt-get install -y fd-find
         # Ubuntu/Debian에서는 fd-find로 설치되므로 심볼릭 링크 생성
-        sudo ln -sf $(which fdfind) /usr/local/bin/fd 2>/dev/null || true
+        sudo ln -sf "$(which fdfind)" /usr/local/bin/fd 2>/dev/null || true
     fi
 fi
 
@@ -324,15 +389,27 @@ if [[ ! $REPLY =~ ^[Nn]$ ]]; then
       echo "✅ terraform-ls 설치 완료"
     elif [ "$MACHINE" = "Linux" ]; then
       # terraform-ls 바이너리 직접 설치
-      TERRAFORM_LS_VERSION="0.32.3"
+      # 동적으로 최신 버전 가져오기
+      TERRAFORM_LS_VERSION=$(curl -s https://api.github.com/repos/hashicorp/terraform-ls/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+      if [ -z "$TERRAFORM_LS_VERSION" ]; then
+        TERRAFORM_LS_VERSION="0.38.3"  # fallback
+      fi
+      # 아키텍처 감지
+      TF_ARCH=$(uname -m)
+      case $TF_ARCH in
+        x86_64) TF_ARCH_SUFFIX="amd64" ;;
+        aarch64|arm64) TF_ARCH_SUFFIX="arm64" ;;
+        *) TF_ARCH_SUFFIX="amd64" ;;
+      esac
+
       TEMP_DIR=$(mktemp -d)
       cd "$TEMP_DIR"
-      curl -LO "https://releases.hashicorp.com/terraform-ls/${TERRAFORM_LS_VERSION}/terraform-ls_${TERRAFORM_LS_VERSION}_linux_amd64.zip"
-      unzip "terraform-ls_${TERRAFORM_LS_VERSION}_linux_amd64.zip"
+      curl -LO "https://releases.hashicorp.com/terraform-ls/${TERRAFORM_LS_VERSION}/terraform-ls_${TERRAFORM_LS_VERSION}_linux_${TF_ARCH_SUFFIX}.zip"
+      unzip "terraform-ls_${TERRAFORM_LS_VERSION}_linux_${TF_ARCH_SUFFIX}.zip"
       sudo mv terraform-ls /usr/local/bin/
       cd - > /dev/null
       rm -rf "$TEMP_DIR"
-      echo "✅ terraform-ls 설치 완료"
+      echo "✅ terraform-ls ${TERRAFORM_LS_VERSION} 설치 완료"
     fi
   fi
 
@@ -391,7 +468,7 @@ echo ""
 
 read -p "지금 Neovim을 실행하여 플러그인을 설치하시겠습니까? (Y/n): " -n 1 -r
 echo
-if [[ ! $$REPLY =~ ^[Nn]$$ ]]; then
+if [[ ! $REPLY =~ ^[Nn]$ ]]; then
   echo "✅ Neovim 실행 중..."
   echo "   플러그인 설치가 완료되면 자동으로 종료됩니다."
   sleep 2

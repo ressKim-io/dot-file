@@ -883,12 +883,12 @@ end, {desc = 'Docker build'})
 
 -- Docker compose up
 vim.keymap.set('n', '<leader>du', function()
-  vim.cmd('!docker-compose up -d')
+  vim.cmd('!docker compose up -d')
 end, {desc = 'Docker compose up'})
 
 -- Docker compose down
 vim.keymap.set('n', '<leader>dd', function()
-  vim.cmd('!docker-compose down')
+  vim.cmd('!docker compose down')
 end, {desc = 'Docker compose down'})
 
 -- 빠른 실행 (현재 파일)

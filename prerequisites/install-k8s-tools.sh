@@ -27,7 +27,7 @@ echo "✅ 감지된 OS: $MACHINE ($ARCH)"
 echo ""
 
 # Fallback 버전 (API 실패 시 사용)
-FALLBACK_KUBECTL_VERSION="v1.32.0"
+FALLBACK_KUBECTL_VERSION="v1.35.1"
 
 # 필수 도구 체크 및 설치
 if [ "$MACHINE" = "Linux" ]; then
@@ -56,7 +56,7 @@ echo "=========================================="
 echo ""
 
 if command -v kubectl &> /dev/null; then
-  KUBECTL_VERSION=$(kubectl version --client --short 2>/dev/null | awk '{print $3}' || kubectl version --client -o json 2>/dev/null | grep gitVersion | awk -F'"' '{print $4}')
+  KUBECTL_VERSION=$(kubectl version --client -o json 2>/dev/null | grep gitVersion | awk -F'"' '{print $4}')
   echo "✅ kubectl 이미 설치됨: $KUBECTL_VERSION"
 else
   echo "📥 최신 kubectl 버전 확인 중..."
@@ -98,7 +98,7 @@ else
     sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
     rm kubectl kubectl.sha256
 
-    echo "✅ kubectl 설치 완료: $(kubectl version --client --short 2>/dev/null || echo $KUBECTL_VERSION)"
+    echo "✅ kubectl 설치 완료: $(kubectl version --client -o json 2>/dev/null | grep gitVersion | awk -F'\"' '{print $4}' || echo $KUBECTL_VERSION)"
   fi
 fi
 
@@ -191,7 +191,7 @@ echo "✅ Kubernetes 도구 설치 완료!"
 echo "=========================================="
 echo ""
 echo "📚 설치된 도구:"
-command -v kubectl &> /dev/null && echo "   - kubectl: $(kubectl version --client --short 2>/dev/null | awk '{print $3}' || kubectl version --client -o json 2>/dev/null | grep gitVersion | awk -F'"' '{print $4}')"
+command -v kubectl &> /dev/null && echo "   - kubectl: $(kubectl version --client -o json 2>/dev/null | grep gitVersion | awk -F'"' '{print $4}')"
 command -v helm &> /dev/null && echo "   - helm: $(helm version --short)"
 command -v kubectx &> /dev/null && echo "   - kubectx: $(kubectx --version 2>/dev/null || echo 'installed')"
 command -v kubens &> /dev/null && echo "   - kubens: $(kubens --version 2>/dev/null || echo 'installed')"

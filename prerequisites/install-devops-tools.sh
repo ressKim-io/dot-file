@@ -28,8 +28,8 @@ echo "✅ 감지된 OS: $MACHINE ($ARCH)"
 echo ""
 
 # Fallback 버전 (API 실패 시 사용)
-FALLBACK_YQ_VERSION="4.44.3"
-FALLBACK_HADOLINT_VERSION="2.12.0"
+FALLBACK_YQ_VERSION="4.52.2"
+FALLBACK_HADOLINT_VERSION="2.14.0"
 
 # Linux에서 필수 도구 체크 및 설치
 if [ "$MACHINE" = "Linux" ]; then

@@ -158,26 +158,6 @@ else
   exit 1
 fi
 
-# 플러그인 경로 자동 수정
-echo "🔧 플러그인 경로 수정 중..."
-
-# macOS와 Linux 모두 호환되는 sed 사용
-if [ "$MACHINE" = "Mac" ]; then
-  # macOS의 경우
-  sed -i '' \
-    -e 's|"ellisonleao/dotenv\.nvim"|"SergioRibera/dotenv.nvim"|g' \
-    -e 's|"rest\.nvim/rest\.nvim"|"rest-nvim/rest.nvim"|g' \
-    "$NVIM_CONFIG_DIR/init.lua"
-else
-  # Linux의 경우
-  sed -i \
-    -e 's|"ellisonleao/dotenv\.nvim"|"SergioRibera/dotenv.nvim"|g' \
-    -e 's|"rest\.nvim/rest\.nvim"|"rest-nvim/rest.nvim"|g' \
-    "$NVIM_CONFIG_DIR/init.lua"
-fi
-
-echo "✅ 플러그인 경로 수정 완료"
-
 if [ -f "$SCRIPT_DIR/lazy-lock.json" ]; then
   cp "$SCRIPT_DIR/lazy-lock.json" "$NVIM_CONFIG_DIR/"
 fi
@@ -220,14 +200,6 @@ fi
 echo "✅ 터미널 설정 완료"
 echo ""
 
-# lazy 캐시 정리
-echo "🧹 캐시 정리 중..."
-rm -rf "$HOME/.local/share/nvim/lazy/dotenv.nvim" 2>/dev/null || true
-rm -rf "$HOME/.local/share/nvim/lazy/rest.nvim" 2>/dev/null || true
-rm -rf "$HOME/.local/share/nvim/lazy/rest-nvim" 2>/dev/null || true
-rm -rf "$HOME/.local/state/nvim/lazy" 2>/dev/null || true
-echo "✅ 캐시 정리 완료"
-echo ""
 
 # ========================================
 # 4. 필수 종속성 설치
@@ -392,7 +364,7 @@ if [[ ! $REPLY =~ ^[Nn]$ ]]; then
       # 동적으로 최신 버전 가져오기
       TERRAFORM_LS_VERSION=$(curl -s https://api.github.com/repos/hashicorp/terraform-ls/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
       if [ -z "$TERRAFORM_LS_VERSION" ]; then
-        TERRAFORM_LS_VERSION="0.38.3"  # fallback
+        TERRAFORM_LS_VERSION="0.38.4"  # fallback
       fi
       # 아키텍처 감지
       TF_ARCH=$(uname -m)
@@ -523,17 +495,10 @@ if [ -f "$NVIM_CONFIG_DIR/init.lua" ]; then
 
 -- 커서 위치 문제 해결
 vim.opt.guicursor = ""
-vim.opt.ttyfast = true
-vim.opt.lazyredraw = true
 vim.opt.timeoutlen = 500
 vim.opt.ttimeoutlen = 0
 vim.opt.virtualedit = "onemore"
 vim.opt.whichwrap = "b,s,<,>,[,]"
-
--- 터미널에서 더 나은 성능
-if vim.fn.has('nvim') == 1 then
-  vim.opt.termguicolors = true
-end
 EOF
         echo "✅ 커서 설정이 init.lua에 추가되었습니다."
     fi

@@ -14,7 +14,7 @@ The repository is organized into independent modules, each with its own `install
 |--------|---------|
 | `prerequisites/` | Foundational runtimes (Go, Node.js, Python) and DevOps tools (kubectl, helm, terraform, jq, yq) |
 | `zsh/` | Oh-My-Zsh with platform-aware configuration (Mac/WSL/Linux detection) |
-| `nvim/` | Neovim with 37+ plugins, LSP servers, and DevOps integrations |
+| `nvim/` | Neovim IDE with modular config (`lua/config/` + `lua/plugins/`), Mason-managed LSP/DAP, blink.cmp, debugger, test runner, conform/lint, 50+ plugins |
 | `kubectl/` | kubectl aliases and shell completion |
 | `kubectx/` | Context/namespace switching with safety prompts for production |
 | `aws/` | AWS CLI shortcuts and EC2/cost management functions |
@@ -47,7 +47,9 @@ All installation scripts follow this pattern:
 ## Key Configuration Files
 
 - **`zsh/.zshrc`** (508 lines): Platform detection functions (`is_mac()`, `is_wsl()`, `is_linux()`), 2-line prompt with git branch, kubernetes integration
-- **`nvim/init.lua`** (945 lines): Lazy.nvim plugin management, LSP setup for Go/Python/TypeScript/Terraform/YAML/Bash/Docker, intelligent theme selection based on directory/branch/time
+- **`nvim/init.lua`** (~150 lines): Entry point - lazy.nvim bootstrap, config/plugin module loading, theme auto-switching logic
+- **`nvim/lua/config/`**: Core settings split into `options.lua`, `keymaps.lua`, `autocmds.lua`, `devops.lua`
+- **`nvim/lua/plugins/`**: 12 plugin modules - `lsp.lua` (Mason + 9 LSP servers), `completion.lua` (blink.cmp), `dap.lua` (Go/Python/JS debugger), `testing.lua` (neotest), `formatting.lua` (conform + nvim-lint), `telescope.lua`, `treesitter.lua`, `git.lua`, `editor.lua`, `ui.lua`, `navigation.lua`, `devops.lua`
 - **`aws/aws-aliases.sh`** (110 lines): EC2 management functions, cost optimization helpers
 
 ## Production Safety Features

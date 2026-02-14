@@ -1,55 +1,100 @@
-# Neovim Cloud Native DevOps 설정
+# Neovim Cloud Native DevOps IDE
 
-**VSCode 대신 Neovim!** Cloud Native/DevOps 환경에 특화된 완전체 설정입니다.
-
----
-
-## ✨ 특징
-
-### ☸️  Cloud Native / Kubernetes
-- ✅ **YAML 스키마**: Kubernetes, Helm, ArgoCD, Kustomize
-- ✅ **kubectl 통합**: apply, delete, get, describe 빠른 실행
-- ✅ **Helm**: template 미리보기, lint
-- ✅ **kubectl UI**: nvim 안에서 리소스 관리
-- ✅ **YAML path 확인**: 현재 위치의 YAML 경로 표시
-
-### 🐳 Container / IaC
-- ✅ **Terraform**: fmt, validate, plan 자동 실행
-- ✅ **Dockerfile**: hadolint 린팅
-- ✅ **Docker Compose**: up/down 빠른 실행
-- ✅ **환경변수**: .env 파일 하이라이트
-
-### 🔧 DevOps 도구
-- ✅ **REST API 테스트**: curl 대신 .http 파일로 테스트
-- ✅ **JSON/YAML 변환**: 선택 영역 즉시 변환
-- ✅ **Base64 인코딩/디코딩**: Secret 관리
-- ✅ **Git Diffview**: 변경사항 시각화
-
-### 🎯 기본 기능
-- ✅ **LSP**: Go, Python, Terraform, YAML, Bash, Docker
-- ✅ **프로덕션 안전**: 디렉토리별 자동 테마 변경
-- ✅ **Git**: Blame 인라인, 브랜치 감지
-- ✅ **자동 포맷**: on save (Go, Python, Lua, Rust)
-- ✅ **TODO 관리**: 프로젝트 전체 TODO/FIXME 검색
-- ✅ **생산성**: Telescope, NvimTree, 버퍼라인, 자동 페어
+Cloud Native/DevOps/Platform Engineering에 특화된 Neovim IDE 설정.
+디버깅, 테스트 러너, 리팩토링, 코드 네비게이션, 모던 UI까지 갖춘 완전체 설정입니다.
 
 ---
 
-## 🚀 설치
+## 특징
+
+### IDE 핵심 기능
+- **blink.cmp**: Rust 기반 고성능 자동완성 엔진
+- **Mason**: LSP/DAP/린터/포맷터 자동 설치 및 관리
+- **nvim-dap**: Go, Python, JS/TS 디버거 (브레이크포인트, 변수 확인, 스텝 실행)
+- **neotest**: Go, Python 테스트 러너 (개별/파일 단위 실행, DAP 연동)
+- **conform.nvim**: 저장 시 자동 포맷 (goimports, black, prettier, shfmt 등)
+- **nvim-lint**: 자동 린팅 (golangci-lint, ruff, shellcheck, hadolint, yamllint)
+- **Treesitter**: 22개 언어 구문 분석 + 점진적 선택
+- **Aerial**: 심볼 아웃라인 (Structure 패널)
+- **Refactoring**: Extract Function/Variable, Inline Variable
+
+### Cloud Native / Kubernetes
+- **YAML 스키마**: Kubernetes, Helm, ArgoCD, Kustomize, Docker Compose, GitHub Actions
+- **kubectl 통합**: apply, delete, get, describe 빠른 실행
+- **kubectl UI**: nvim 안에서 리소스 관리
+- **Helm**: template 미리보기, lint
+- **YAML path 확인**: 현재 위치의 YAML 경로 표시
+
+### Container / IaC
+- **Terraform**: fmt, validate, plan + LSP 자동완성 + tflint
+- **Dockerfile**: LSP 자동완성 + hadolint 린팅
+- **Docker Compose**: up/down 빠른 실행
+
+### DevOps 도구
+- **JSON/YAML 변환**: 선택 영역 즉시 변환
+- **Base64 인코딩/디코딩**: Secret 관리
+- **Git 통합**: LazyGit, Diffview, Gitsigns, Git Conflict 시각화
+- **grug-far**: 프로젝트 전체 검색/치환
+
+### 모던 UI
+- **Noice**: 커맨드라인/메시지/알림 UI
+- **Lualine**: 상태바 (mode, branch, diff, diagnostics, LSP)
+- **Dropbar**: 브레드크럼 네비게이션
+- **Bufferline**: 탭 스타일 버퍼 관리
+- **Flash**: 빠른 점프 + Treesitter 선택
+
+### 프로덕션 안전
+- 프로덕션 디렉토리/main 브랜치에서 Gruvbox 경고 테마 자동 적용
+- 시간대별 테마 자동 전환
+
+---
+
+## 파일 구조
+
+```
+nvim/
+├── init.lua                    # 엔트리 포인트 (lazy.nvim 부트스트랩 + 테마)
+├── lua/
+│   ├── config/
+│   │   ├── options.lua         # vim.opt 설정
+│   │   ├── keymaps.lua         # 일반 키맵
+│   │   ├── autocmds.lua        # 자동 명령
+│   │   └── devops.lua          # DevOps 유틸리티 함수 & 키맵
+│   └── plugins/
+│       ├── lsp.lua             # mason + mason-lspconfig + lspconfig
+│       ├── completion.lua      # blink.cmp + friendly-snippets
+│       ├── dap.lua             # nvim-dap + dap-ui + Go/Python/JS 어댑터
+│       ├── telescope.lua       # telescope + frecency
+│       ├── treesitter.lua      # treesitter + 22개 파서
+│       ├── git.lua             # gitsigns, diffview, lazygit, git-conflict, fugitive
+│       ├── editor.lua          # surround, autopairs, flash, commentary, refactoring
+│       ├── ui.lua              # noice, lualine, bufferline, dropbar, notify, 테마
+│       ├── navigation.lua      # nvim-tree, oil, aerial
+│       ├── testing.lua         # neotest + Go/Python 어댑터
+│       ├── formatting.lua      # conform.nvim + nvim-lint
+│       └── devops.lua          # terraform, helm, kubectl, yaml, schemastore
+├── install.sh
+└── lazy-lock.json
+```
+
+---
+
+## 설치
 
 ```bash
 ./install.sh
 ```
 
 자동으로:
-- Neovim 설치
-- 설정 파일 복사
-- LSP 서버 설치 (선택)
-- 플러그인 설치
+1. Neovim 0.11+ 설치/업그레이드
+2. 모듈 구조 설정 파일 복사
+3. 필수 도구 설치 (ripgrep, fd, lazygit, shellcheck, shfmt)
+4. 플러그인 설치 (lazy.nvim)
+5. Mason이 LSP 서버, DAP 어댑터, 린터, 포맷터 자동 설치
 
 ---
 
-## ⌨️  주요 단축키
+## 주요 단축키
 
 **Leader 키: Space**
 
@@ -59,8 +104,14 @@
 | `<leader>ff` | 파일 검색 |
 | `<leader>fg` | 텍스트 검색 (Grep) |
 | `<leader>fr` | 최근 파일 |
+| `<leader>fb` | 열린 버퍼 목록 |
+| `<leader>fd` | 진단 목록 |
+| `<leader>fs` | 문서 심볼 |
 | `<leader>ft` | TODO/FIXME 검색 |
 | `<leader>e` | 파일 트리 토글 |
+| `-` | Oil 파일 관리자 |
+| `<leader>o` | 심볼 아웃라인 (Aerial) |
+| `<leader>sr` | 프로젝트 검색/치환 |
 
 ### 버퍼 & 창
 | 단축키 | 기능 |
@@ -68,28 +119,76 @@
 | `Tab` / `Shift+Tab` | 다음/이전 버퍼 |
 | `<leader>bd` | 버퍼 삭제 |
 | `Ctrl+h/j/k/l` | 창 이동 |
+| `<Ctrl+\>` | 터미널 토글 |
 
 ### LSP
 | 단축키 | 기능 |
 |--------|------|
 | `gd` | 정의로 이동 |
+| `gD` | 선언으로 이동 |
+| `gi` | 구현으로 이동 |
+| `gt` | 타입 정의로 이동 |
+| `gr` | 참조 찾기 |
 | `K` | 문서 보기 |
 | `<leader>rn` | 이름 변경 |
 | `<leader>ca` | 코드 액션 |
-| `gr` | 참조 찾기 |
+| `<leader>lf` | 포맷 |
+| `[d` / `]d` | 이전/다음 진단 |
+
+### 디버거 (DAP)
+| 단축키 | 기능 |
+|--------|------|
+| `F5` | 계속 실행 |
+| `F9` | 브레이크포인트 토글 |
+| `F10` | Step Over |
+| `F11` | Step Into |
+| `Shift+F11` | Step Out |
+| `<leader>du` | DAP UI 토글 |
+| `<leader>dB` | 조건부 브레이크포인트 |
+| `<leader>dr` | REPL 열기 |
+| `<leader>dl` | 마지막 디버그 재실행 |
+
+### 테스트 (Neotest)
+| 단축키 | 기능 |
+|--------|------|
+| `<leader>tn` | 가장 가까운 테스트 실행 |
+| `<leader>tF` | 파일 전체 테스트 실행 |
+| `<leader>ts` | 테스트 요약 패널 |
+| `<leader>to` | 테스트 출력 |
+| `<leader>td` | 디버그 모드로 테스트 |
 
 ### Git
 | 단축키 | 기능 |
 |--------|------|
+| `<leader>gg` | LazyGit 열기 |
+| `<leader>gd` | Git Diff 열기 |
+| `<leader>gh` | Git 파일 히스토리 |
+| `<leader>gc` | Diffview 닫기 |
 | `<leader>gb` | Git blame 현재 줄 |
+| `<leader>hs` | Hunk stage |
+| `<leader>hr` | Hunk reset |
+| `<leader>hp` | Hunk preview |
+| `]c` / `[c` | 다음/이전 hunk |
 
 ### 편집
 | 단축키 | 기능 |
 |--------|------|
+| `s` | Flash 점프 |
+| `S` | Flash Treesitter 선택 |
 | `cs"'` | " 를 ' 로 변경 (Surround) |
 | `<Alt+j/k>` | 라인 위/아래 이동 |
 | `<leader>s` | 단어 치환 |
 | `<leader>a` | 전체 선택 |
+| `<leader>re` | Extract Function (visual) |
+| `<leader>rv` | Extract Variable (visual) |
+| `<leader>ri` | Inline Variable |
+
+### 세션
+| 단축키 | 기능 |
+|--------|------|
+| `<leader>ps` | 세션 복원 |
+| `<leader>pS` | 세션 선택 |
+| `<leader>pl` | 마지막 세션 복원 |
 
 ### Kubernetes
 | 단축키 | 기능 |
@@ -118,273 +217,162 @@
 | 단축키 | 기능 |
 |--------|------|
 | `<leader>db` | Docker build |
-| `<leader>du` | Docker compose up |
-| `<leader>dd` | Docker compose down |
+| `<leader>dc` | Docker compose up |
+| `<leader>dC` | Docker compose down |
 
-### JSON/YAML/Base64 (Visual 모드)
-| 단축키 | 기능 |
-|--------|------|
-| `<leader>jy` | JSON → YAML |
-| `<leader>yj` | YAML → JSON |
-| `<leader>jf` | JSON 포맷팅 |
-| `<leader>be` | Base64 인코딩 |
-| `<leader>bd` | Base64 디코딩 |
-| `<leader>yv` | YAML 검증 |
-
-### REST API
-| 단축키 | 기능 |
-|--------|------|
-| `<leader>rr` | REST 요청 실행 (.http 파일) |
-| `<leader>rl` | 마지막 요청 재실행 |
+### JSON/YAML/Base64
+| 단축키 | 모드 | 기능 |
+|--------|------|------|
+| `<leader>jy` | Visual | JSON -> YAML |
+| `<leader>yj` | Visual | YAML -> JSON |
+| `<leader>jf` | Normal/Visual | JSON 포맷팅 |
+| `<leader>be` | Visual | Base64 인코딩 |
+| `<leader>bd` | Visual | Base64 디코딩 |
+| `<leader>yv` | Normal | YAML 검증 |
 
 ### 유틸리티
 | 단축키 | 기능 |
 |--------|------|
 | `<leader>x` | 현재 파일 빠른 실행 (sh/py/js/go) |
-| `<leader>yp` | 파일 경로 복사 |
+| `<leader>yp` | 파일 전체 경로 복사 |
 | `<leader>yr` | 상대 경로 복사 |
 | `<leader>mp` | Markdown 미리보기 |
 | `<leader>tt` | 테마 변경 |
-| `<Ctrl+\>` | 터미널 토글 |
+| `<leader>xx` | 진단 목록 (Trouble) |
 | `<leader>w` | 저장 |
 | `<leader>q` | 종료 |
 
 ---
 
-## 🎯 실무 활용
+## LSP 서버 (Mason 자동 관리)
 
-### Kubernetes 워크플로우
-```bash
-# 1. deployment.yaml 편집
-nvim deployment.yaml
+Mason이 아래 서버를 자동 설치합니다:
 
-# 2. LSP가 자동으로 Kubernetes 스키마 로드
-#    → 자동완성, 에러 검증
+| 서버 | 언어 |
+|------|------|
+| gopls | Go |
+| pyright | Python |
+| ts_ls | TypeScript/JavaScript |
+| terraformls | Terraform |
+| tflint | Terraform Lint |
+| yamlls | YAML (K8s/Helm/ArgoCD 스키마 포함) |
+| bashls | Bash |
+| dockerls | Dockerfile |
+| lua_ls | Lua |
 
-# 3. 현재 파일 바로 적용
-<leader>ka  # kubectl apply -f deployment.yaml
-
-# 4. Pod 상태 확인
-<leader>kk  # kubectl UI 열기
-
-# 5. 리소스 빠른 조회
-커서를 "nginx" 위에 놓고
-<leader>kg  # kubectl get nginx
-```
-
-### Helm Chart 개발
-```bash
-nvim values.yaml
-
-# 1. values 스키마 자동 검증
-# 2. Template 미리보기
-<leader>ht  # helm template .
-
-# 3. Lint 체크
-<leader>hl  # helm lint .
-```
-
-### Terraform 워크플로우
-```bash
-nvim main.tf
-
-# 1. 저장 시 자동 fmt
-:w
-
-# 2. Validate
-<leader>tv  # terraform validate
-
-# 3. Plan
-<leader>tp  # terraform plan
-```
-
-### Secret/ConfigMap 관리
-```yaml
-# secret.yaml 편집
-apiVersion: v1
-kind: Secret
-data:
-  password: 선택 후 <leader>be  # Base64 인코딩
-```
-
-### REST API 테스트
-```http
-# api.http 파일 생성
-GET https://api.github.com/users/hyeokjun
-Authorization: token xxx
-
-###
-
-POST https://api.example.com/users
-Content-Type: application/json
-
-{
-  "name": "test"
-}
-```
-`<leader>rr` 로 즉시 실행!
-
-### JSON/YAML 변환
-```bash
-# JSON 선택 후
-<leader>jy  # YAML로 변환
-
-# YAML 선택 후
-<leader>yj  # JSON으로 변환
-```
+수동 관리: `:Mason` 명령으로 UI 열기
 
 ---
 
-## 📦 LSP 서버 수동 설치
+## 포맷터 & 린터
 
-```bash
-# Go
-go install golang.org/x/tools/gopls@latest
+### 포맷터 (conform.nvim - 저장 시 자동 실행)
+| 언어 | 포맷터 |
+|------|--------|
+| Go | goimports, gofumpt |
+| Python | black, isort |
+| JS/TS/JSON/YAML/MD | prettier |
+| Terraform | terraform_fmt |
+| Bash/sh | shfmt |
+| Lua | stylua |
 
-# Python
-npm install -g pyright
+### 린터 (nvim-lint - 저장 시 자동 실행)
+| 언어 | 린터 |
+|------|------|
+| Go | golangci-lint |
+| Python | ruff |
+| Bash/sh | shellcheck |
+| Dockerfile | hadolint |
+| YAML | yamllint |
+| Terraform | tflint |
 
-# TypeScript
-npm install -g typescript-language-server typescript
-
-# YAML
-npm install -g yaml-language-server
-
-# Bash
-npm install -g bash-language-server
-
-# Docker
-npm install -g dockerfile-language-server-nodejs
-
-# Terraform (Mac)
-brew install terraform-ls tflint
-```
+포매터 상태 확인: `:ConformInfo`
 
 ---
 
-## 🎨 테마
+## 테마
 
 자동 선택 우선순위:
-1. **프로덕션 디렉토리** → Gruvbox (경고)
-2. **main/master 브랜치** → Gruvbox (경고)
-3. **WSL** → Tokyo Night Storm
-4. **낮 시간 (9-18시)** → Rose Pine
-5. **밤 시간** → Tokyo Night / Catppuccin
+1. **프로덕션 디렉토리** (`/production`, `/prod`) -> Gruvbox (경고)
+2. **main/master 브랜치** -> Gruvbox (경고)
+3. **WSL** -> Tokyo Night Storm
+4. **낮 시간 (9-18시)** -> Rose Pine
+5. **밤 시간** -> Tokyo Night (기본) / Catppuccin (dev 디렉토리)
 
 수동 변경: `<leader>tt`
 
 ---
 
-## 🔧 트러블슈팅
+## 트러블슈팅
 
-### LSP가 작동하지 않음
-```bash
-# Neovim에서 확인
+### 전체 상태 확인
+```vim
 :checkhealth
-:LspInfo
-
-# LSP 서버 설치 확인
-which gopls
-which pyright
 ```
 
-### 플러그인 오류
+### LSP 문제
+```vim
+:LspInfo        " 연결된 LSP 서버 확인
+:Mason          " LSP/DAP/린터/포맷터 관리
+```
+
+### 포맷터/린터 문제
+```vim
+:ConformInfo    " 포매터 상태 확인
+```
+
+### 플러그인 재설치
 ```bash
-# 플러그인 재설치
 rm -rf ~/.local/share/nvim
-nvim
-# 자동으로 재설치됨
+nvim             # lazy.nvim이 자동 재설치
+```
+
+### 디버거 어댑터 확인
+```vim
+:Mason           " DAP 어댑터 설치 상태
+" Go: delve (자동)
+" Python: debugpy (자동)
+" JS/TS: js-debug-adapter (Mason에서 수동 설치)
 ```
 
 ---
 
-## 💡 추가된 생산성 기능
-
-### 자동 기능
-- ✅ 저장 시 trailing whitespace 자동 제거
-- ✅ Go/Python/Lua/Rust 자동 포맷 on save
-- ✅ 마지막 편집 위치 자동 복원
-- ✅ Undo 히스토리 영구 저장
-
-### TODO 관리
-```go
-// TODO: 이 함수 리팩토링 필요
-// FIXME: 버그 수정 필요
-// NOTE: 중요한 주의사항
-// HACK: 임시 해결책
-// PERF: 성능 최적화 필요
-```
-`<leader>ft`로 프로젝트 전체 TODO 검색
-
-### Git Blame
-코드 위에 커밋 정보가 자동으로 표시됨:
-```
-혁준 • 2 days ago • feat: add new feature
-def my_function():
-    pass
-```
-
----
-
-## 📦 필수 도구 설치
-
-nvim 외에 다음 도구들이 필요합니다:
+## 필수 외부 도구
 
 ```bash
 # macOS
-brew install jq yq yamllint hadolint kubectl helm terraform
+brew install jq yq yamllint hadolint kubectl helm terraform lazygit shellcheck shfmt
 
 # Ubuntu/Debian
-sudo apt-get install jq yamllint
+sudo apt-get install jq yamllint shellcheck
 
-# yq (Go 버전)
+# yq
 sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
 sudo chmod +x /usr/local/bin/yq
 
-# hadolint (Docker 린터)
+# hadolint
 sudo wget -qO /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
 sudo chmod +x /usr/local/bin/hadolint
 ```
 
 ---
 
-## 💡 VSCode vs Neovim
+## 검증
 
-### 왜 Neovim?
-- ✅ **초고속**: 메모리 사용량 1/10, 시작 속도 10배
-- ✅ **SSH 원격**: 서버에서 바로 편집
-- ✅ **터미널 통합**: kubectl, helm, terraform 즉시 실행
-- ✅ **경량**: Electron 없음
-- ✅ **커스터마이징**: 모든 것을 Lua로 제어
+```bash
+# 1. 플러그인 설치 확인
+nvim --headless "+Lazy! sync" +qa
 
-### 이 설정의 장점
-- ✅ Kubernetes YAML 자동완성/검증
-- ✅ kubectl 명령어 nvim 안에서 실행
-- ✅ Helm/Terraform/Docker 통합
-- ✅ REST API 테스트 (Postman 필요 없음)
-- ✅ JSON/YAML/Base64 즉시 변환
-- ✅ Git diff 시각화
+# 2. nvim 실행 후
+:checkhealth           # 전체 상태
+:Mason                 # LSP/DAP 설치 상태
+:LspInfo               # LSP 연결 확인
+:ConformInfo           # 포매터 상태
 
----
-
-## 📝 업데이트
-
-- 2024.10.23: **Cloud Native 풀셋 추가!** (Kubernetes, Helm, Terraform, Docker, REST API)
-- 2024.10.23: 생산성 기능 대폭 추가 (TODO, 자동 포맷, Git blame 등)
-- 2024.10.23: 초기 버전 생성
-- DevOps 특화 LSP 설정
-- 프로덕션 안전 기능
-- 4가지 테마 자동 전환
-
----
-
-## 🎉 최종 정리
-
-**총 37개 플러그인, 945줄 설정**
-- 기본 편집기 기능 ✅
-- Cloud Native/DevOps 도구 ✅
-- Kubernetes/Helm/Terraform 통합 ✅
-- REST API 테스트 ✅
-- JSON/YAML/Base64 유틸리티 ✅
-
-**VSCode를 완전히 대체 가능합니다!** 🚀
+# 3. 기능 테스트
+<leader>ff             # 파일 검색
+<leader>gg             # LazyGit
+<leader>o              # 심볼 아웃라인
+F9 -> F5               # 디버거
+<leader>tn             # 테스트 실행
+```

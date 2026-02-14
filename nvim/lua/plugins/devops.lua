@@ -32,7 +32,7 @@ return {
     end,
   },
 
-  -- Kubectl UI
+  -- Kubectl UI (native binary는 cargo 설치 후 :KubectlBuild로 빌드)
   {
     "ramilito/kubectl.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },

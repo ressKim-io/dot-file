@@ -30,7 +30,6 @@ return {
           "pyright",
           "ts_ls",
           "terraformls",
-          "tflint",
           "yamlls",
           "bashls",
           "dockerls",
@@ -47,6 +46,7 @@ return {
     dependencies = {
       "williamboman/mason.nvim",
       "williamboman/mason-lspconfig.nvim",
+      "b0o/schemastore.nvim",
     },
     config = function()
       -- LSP 키맵 설정 (LspAttach 이벤트 사용)
@@ -83,7 +83,6 @@ return {
       vim.lsp.config('pyright', {})
       vim.lsp.config('ts_ls', {})
       vim.lsp.config('terraformls', {})
-      vim.lsp.config('tflint', {})
       vim.lsp.config('bashls', {})
       vim.lsp.config('dockerls', {})
       vim.lsp.config('lua_ls', {
@@ -96,48 +95,18 @@ return {
           },
         },
       })
+      -- schemastore.nvim 연동 + DevOps 커스텀 스키마
+      local schemas = require("schemastore").yaml.schemas()
+      -- DevOps 커스텀 스키마 추가
+      schemas["kubernetes"] = {
+        "*.k8s.yaml", "k8s/**/*.yaml", "kubernetes/**/*.yaml",
+        "deploy*.yaml", "deployment*.yaml", "service*.yaml",
+        "ingress*.yaml", "configmap*.yaml", "secret*.yaml",
+      }
       vim.lsp.config('yamlls', {
         settings = {
           yaml = {
-            schemas = {
-              -- Kubernetes
-              kubernetes = {
-                "*.k8s.yaml",
-                "k8s/**/*.yaml",
-                "kubernetes/**/*.yaml",
-                "deploy*.yaml",
-                "deployment*.yaml",
-                "service*.yaml",
-                "ingress*.yaml",
-                "configmap*.yaml",
-                "secret*.yaml",
-              },
-              -- Helm
-              ["https://json.schemastore.org/helmfile"] = "helmfile*.yaml",
-              ["https://json.schemastore.org/chart"] = "Chart.yaml",
-              ["https://json.schemastore.org/helmvalues"] = "values*.yaml",
-              -- ArgoCD
-              ["https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/crds/application-crd.yaml"] = {
-                "argocd/application*.yaml",
-                "**/argo*/application*.yaml",
-              },
-              ["https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/crds/appproject-crd.yaml"] = {
-                "argocd/appproject*.yaml",
-                "**/argo*/appproject*.yaml",
-              },
-              -- CI/CD
-              ["https://json.schemastore.org/github-workflow"] = ".github/workflows/*",
-              ["https://gitlab.com/gitlab-org/gitlab/-/raw/master/app/assets/javascripts/editor/schema/ci.json"] = ".gitlab-ci.yml",
-              -- Docker
-              ["https://json.schemastore.org/docker-compose"] = {
-                "docker-compose*.yml",
-                "docker-compose*.yaml",
-                "compose*.yml",
-                "compose*.yaml",
-              },
-              -- Kustomize
-              ["https://json.schemastore.org/kustomization"] = "kustomization.yaml",
-            },
+            schemas = schemas,
             format = { enable = true },
             validate = true,
             completion = true,
@@ -148,7 +117,7 @@ return {
 
       -- LSP 서버 활성화
       vim.lsp.enable({
-        'gopls', 'pyright', 'ts_ls', 'terraformls', 'tflint',
+        'gopls', 'pyright', 'ts_ls', 'terraformls',
         'yamlls', 'bashls', 'dockerls', 'lua_ls',
       })
     end,

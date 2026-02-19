@@ -48,8 +48,8 @@ return {
         show_guides = true,
       })
       vim.keymap.set('n', '<leader>o', ':AerialToggle<CR>', {desc = 'Toggle symbol outline'})
-      vim.keymap.set('n', '{', ':AerialPrev<CR>', {desc = 'Previous symbol'})
-      vim.keymap.set('n', '}', ':AerialNext<CR>', {desc = 'Next symbol'})
+      vim.keymap.set('n', '[a', ':AerialPrev<CR>', {desc = 'Previous symbol'})
+      vim.keymap.set('n', ']a', ':AerialNext<CR>', {desc = 'Next symbol'})
     end,
   },
 }

@@ -48,12 +48,16 @@ require("lazy").setup({
 -- 상황별 테마 자동 변경 (실무 DevOps)
 -- ============================================================================
 
+-- WSL 여부는 세션 중 변하지 않으므로 1회만 검사
+local _is_wsl_cached = nil
 local function is_wsl()
-  local handle = io.popen("uname -r")
-  if not handle then return false end
+  if _is_wsl_cached ~= nil then return _is_wsl_cached end
+  local handle = io.popen("uname -r 2>/dev/null")
+  if not handle then _is_wsl_cached = false; return false end
   local result = handle:read("*a")
   handle:close()
-  return result:match("microsoft") or result:match("WSL")
+  _is_wsl_cached = (result:match("microsoft") or result:match("WSL")) and true or false
+  return _is_wsl_cached
 end
 
 local function get_current_hour()
@@ -75,17 +79,18 @@ local function is_dev_dir()
          cwd:match("/test")
 end
 
-local function get_git_branch()
+-- git branch 캐시 (디렉토리별, DirChanged/FocusGained에서만 갱신)
+local _git_branch_cache = nil
+local function refresh_git_branch()
   local handle = io.popen("git branch --show-current 2>/dev/null")
-  if not handle then return nil end
+  if not handle then _git_branch_cache = nil; return end
   local branch = handle:read("*a"):gsub("\n", "")
   handle:close()
-  return branch ~= "" and branch or nil
+  _git_branch_cache = branch ~= "" and branch or nil
 end
 
 local function select_theme()
   local hour = get_current_hour()
-  local branch = get_git_branch()
 
   -- 우선순위 1: 프로덕션 디렉토리
   if is_production_dir() then
@@ -95,7 +100,7 @@ local function select_theme()
   end
 
   -- 우선순위 2: main/master 브랜치
-  if branch == "main" or branch == "master" then
+  if _git_branch_cache == "main" or _git_branch_cache == "master" then
     vim.cmd("colorscheme gruvbox")
     vim.notify("Main branch - Production code!", vim.log.levels.WARN)
     return
@@ -120,18 +125,25 @@ local function select_theme()
 end
 
 -- 초기 테마 설정
+refresh_git_branch()
 select_theme()
 
--- 디렉토리 변경 시 자동 테마 변경
+-- 디렉토리 변경 시 브랜치 갱신 + 테마 변경
 vim.api.nvim_create_autocmd("DirChanged", {
   pattern = "*",
-  callback = select_theme,
+  callback = function()
+    refresh_git_branch()
+    select_theme()
+  end,
 })
 
--- Git 브랜치 변경 감지
-vim.api.nvim_create_autocmd({"BufEnter", "FocusGained"}, {
+-- 포커스 복귀 시에만 브랜치 갱신 (BufEnter 제거 - 성능)
+vim.api.nvim_create_autocmd("FocusGained", {
   pattern = "*",
-  callback = select_theme,
+  callback = function()
+    refresh_git_branch()
+    select_theme()
+  end,
 })
 
 -- 수동 테마 변경 단축키

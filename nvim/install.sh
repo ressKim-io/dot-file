@@ -288,6 +288,65 @@ echo "필수 종속성 설치 완료"
 echo ""
 
 # ========================================
+# Nerd Font 설치 (아이콘 표시용)
+# ========================================
+
+echo "=========================================="
+echo " Nerd Font 설치 (아이콘 표시용)"
+echo "=========================================="
+
+install_nerd_font() {
+  local FONT_NAME="JetBrainsMono"
+  local FONT_DIR
+
+  if [ "$MACHINE" = "Mac" ]; then
+    FONT_DIR="$HOME/Library/Fonts"
+  else
+    FONT_DIR="$HOME/.local/share/fonts"
+  fi
+
+  mkdir -p "$FONT_DIR"
+
+  # 이미 설치 확인
+  if ls "$FONT_DIR"/*${FONT_NAME}*Nerd* 1>/dev/null 2>&1; then
+    echo "  Nerd Font 이미 설치됨 ($FONT_NAME)"
+    return 0
+  fi
+
+  echo "  $FONT_NAME Nerd Font 다운로드 중..."
+  TEMP_DIR=$(mktemp -d)
+  curl -fsSL -o "$TEMP_DIR/font.zip" \
+    "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${FONT_NAME}.zip"
+
+  if [ $? -eq 0 ]; then
+    unzip -qo "$TEMP_DIR/font.zip" -d "$TEMP_DIR/fonts"
+    # ttf/otf 파일만 복사
+    find "$TEMP_DIR/fonts" -name "*.ttf" -exec cp {} "$FONT_DIR/" \;
+    find "$TEMP_DIR/fonts" -name "*.otf" -exec cp {} "$FONT_DIR/" \;
+
+    # Linux에서 폰트 캐시 갱신
+    if [ "$MACHINE" = "Linux" ] && command -v fc-cache &> /dev/null; then
+      fc-cache -fv "$FONT_DIR" > /dev/null 2>&1
+    fi
+
+    echo "  $FONT_NAME Nerd Font 설치 완료"
+    echo ""
+    echo "  [중요] 터미널 설정에서 폰트를 'JetBrainsMono Nerd Font'로 변경하세요!"
+    echo "  - iTerm2: Preferences > Profiles > Text > Font"
+    echo "  - Terminal.app: 환경설정 > 프로파일 > 텍스트 > 서체"
+    echo "  - WezTerm/Alacritty: 설정 파일에서 font_family 변경"
+  else
+    echo "  Nerd Font 다운로드 실패. 수동 설치가 필요합니다."
+    echo "  https://www.nerdfonts.com/font-downloads"
+  fi
+
+  rm -rf "$TEMP_DIR"
+}
+
+install_nerd_font
+echo ""
+
+# ========================================
 # 5. npm 설정
 # ========================================
 

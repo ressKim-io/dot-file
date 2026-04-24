@@ -90,6 +90,31 @@ return {
           long_message_to_split = true,
           lsp_doc_border = true,
         },
+        -- 반복성 에러 메시지가 팝업 폭탄 → 입력 블로킹 되는 것 방지
+        routes = {
+          {
+            filter = {
+              event = "msg_show",
+              any = {
+                { find = "No information available" },
+                { find = "E486" },      -- Pattern not found
+                { find = "written" },   -- "written" 저장 메시지
+                { find = "No parser for" }, -- treesitter 파서 미설치
+              },
+            },
+            opts = { skip = true },
+          },
+          {
+            filter = {
+              event = "notify",
+              any = {
+                { find = "LSP%[.-%] timeout" },
+                { find = "server_capabilities" },
+              },
+            },
+            opts = { skip = true },
+          },
+        },
       })
     end,
   },

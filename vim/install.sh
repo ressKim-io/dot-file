@@ -102,7 +102,8 @@ echo
 if [[ ! $REPLY =~ ^[Nn]$ ]]; then
   echo "✅ 플러그인 설치 중..."
   echo "   (시간이 좀 걸릴 수 있습니다...)"
-  vim +PlugInstall +qall
+  # -E: ex 모드, -s: silent (non-TTY/SSH에서 멈춤 방지)
+  vim -E -s +PlugInstall +qall < /dev/null || vim +PlugInstall +qall < /dev/null
   echo "✅ 플러그인 설치 완료"
 fi
 
@@ -122,7 +123,7 @@ echo
 if [[ ! $REPLY =~ ^[Nn]$ ]]; then
   if command -v go &> /dev/null; then
     echo "✅ Go가 설치되어 있습니다. vim-go 바이너리 설치 중..."
-    vim +GoUpdateBinaries +qall
+    vim -E -s +GoUpdateBinaries +qall < /dev/null || vim +GoUpdateBinaries +qall < /dev/null
     echo "✅ vim-go 설치 완료"
   else
     echo "⚠️  Go가 설치되지 않았습니다."

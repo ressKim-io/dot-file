@@ -27,7 +27,7 @@ echo "✅ 감지된 OS: $MACHINE ($ARCH)"
 echo ""
 
 # Fallback 버전 (API 실패 시 사용)
-FALLBACK_KUBECTL_VERSION="v1.35.1"
+FALLBACK_KUBECTL_VERSION="v1.36.0"
 
 # 필수 도구 체크 및 설치
 if [ "$MACHINE" = "Linux" ]; then
@@ -84,7 +84,7 @@ else
       echo "   수동 설치: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/"
       exit 1
     fi
-    curl -LO "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${ARCH_SUFFIX}/kubectl.sha256"
+    curl -LO --fail "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH_SUFFIX}/kubectl.sha256"
 
     # 체크섬 검증
     echo "🔍 체크섬 검증 중..."
@@ -186,6 +186,86 @@ else
 fi
 
 echo ""
+
+# ========================================
+# 4. k9s 설치 (터미널 Kubernetes UI)
+# ========================================
+
+echo "=========================================="
+echo "📦 k9s 설치 (Kubernetes 터미널 UI)"
+echo "=========================================="
+echo ""
+
+if command -v k9s &> /dev/null; then
+  echo "✅ k9s 이미 설치됨: $(k9s version -s 2>/dev/null | head -n 1 || echo installed)"
+else
+  echo "📥 k9s 설치 중..."
+  if [ "$MACHINE" = "Mac" ]; then
+    if command -v brew &> /dev/null; then
+      brew install k9s
+    fi
+  elif [ "$MACHINE" = "Linux" ]; then
+    ARCH=$(uname -m)
+    case $ARCH in
+      x86_64) K9S_ARCH="amd64" ;;
+      aarch64|arm64) K9S_ARCH="arm64" ;;
+      *) K9S_ARCH="amd64" ;;
+    esac
+    K9S_VERSION=$(curl -s --connect-timeout 10 https://api.github.com/repos/derailed/k9s/releases/latest | grep '"tag_name"' | sed -E 's/.*"(v[^"]+)".*/\1/')
+    [ -z "$K9S_VERSION" ] && K9S_VERSION="v0.50.9"
+    TMPDIR=$(mktemp -d)
+    if curl -fsSL "https://github.com/derailed/k9s/releases/download/${K9S_VERSION}/k9s_Linux_${K9S_ARCH}.tar.gz" -o "$TMPDIR/k9s.tar.gz"; then
+      tar -xzf "$TMPDIR/k9s.tar.gz" -C "$TMPDIR"
+      sudo install -m 0755 "$TMPDIR/k9s" /usr/local/bin/k9s
+      echo "✅ k9s 설치 완료: $K9S_VERSION"
+    else
+      echo "⚠️  k9s 다운로드 실패, 수동 설치가 필요합니다."
+    fi
+    rm -rf "$TMPDIR"
+  fi
+fi
+
+echo ""
+
+# ========================================
+# 5. stern 설치 (다중 Pod 로그 tail)
+# ========================================
+
+echo "=========================================="
+echo "📦 stern 설치 (다중 Pod 로그 tail)"
+echo "=========================================="
+echo ""
+
+if command -v stern &> /dev/null; then
+  echo "✅ stern 이미 설치됨"
+else
+  echo "📥 stern 설치 중..."
+  if [ "$MACHINE" = "Mac" ]; then
+    if command -v brew &> /dev/null; then
+      brew install stern
+    fi
+  elif [ "$MACHINE" = "Linux" ]; then
+    ARCH=$(uname -m)
+    case $ARCH in
+      x86_64) STERN_ARCH="amd64" ;;
+      aarch64|arm64) STERN_ARCH="arm64" ;;
+      *) STERN_ARCH="amd64" ;;
+    esac
+    STERN_VERSION=$(curl -s --connect-timeout 10 https://api.github.com/repos/stern/stern/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+    [ -z "$STERN_VERSION" ] && STERN_VERSION="1.32.0"
+    TMPDIR=$(mktemp -d)
+    if curl -fsSL "https://github.com/stern/stern/releases/download/v${STERN_VERSION}/stern_${STERN_VERSION}_linux_${STERN_ARCH}.tar.gz" -o "$TMPDIR/stern.tar.gz"; then
+      tar -xzf "$TMPDIR/stern.tar.gz" -C "$TMPDIR"
+      sudo install -m 0755 "$TMPDIR/stern" /usr/local/bin/stern
+      echo "✅ stern 설치 완료: v$STERN_VERSION"
+    else
+      echo "⚠️  stern 다운로드 실패, 수동 설치가 필요합니다."
+    fi
+    rm -rf "$TMPDIR"
+  fi
+fi
+
+echo ""
 echo "=========================================="
 echo "✅ Kubernetes 도구 설치 완료!"
 echo "=========================================="
@@ -195,6 +275,8 @@ command -v kubectl &> /dev/null && echo "   - kubectl: $(kubectl version --clien
 command -v helm &> /dev/null && echo "   - helm: $(helm version --short)"
 command -v kubectx &> /dev/null && echo "   - kubectx: $(kubectx --version 2>/dev/null || echo 'installed')"
 command -v kubens &> /dev/null && echo "   - kubens: $(kubens --version 2>/dev/null || echo 'installed')"
+command -v k9s &> /dev/null && echo "   - k9s: installed"
+command -v stern &> /dev/null && echo "   - stern: installed"
 echo ""
 echo "🧪 테스트:"
 echo "   kubectl version --client"

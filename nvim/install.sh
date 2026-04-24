@@ -41,7 +41,7 @@ check_nvim_version() {
 }
 
 install_neovim_linux() {
-  echo "Neovim 최신 버전 설치 중 (AppImage)..."
+  echo "Neovim 최신 버전 설치 중 (tar.gz, FUSE 불필요)..."
 
   ARCH=$(uname -m)
   case $ARCH in
@@ -54,36 +54,65 @@ install_neovim_linux() {
       ;;
   esac
 
-  if command -v nvim &> /dev/null; then
-    NVIM_PATH=$(which nvim)
-    if [ -f "$NVIM_PATH" ]; then
-      sudo rm -f "$NVIM_PATH" 2>/dev/null || true
+  # 기존 apt로 설치된 구버전 nvim 제거 (충돌 방지)
+  if command -v apt-get &> /dev/null; then
+    if dpkg -l 2>/dev/null | grep -qE "^ii\s+neovim\s"; then
+      echo "  apt 버전 Neovim 제거 중 (구버전 충돌 방지)..."
+      sudo apt-get remove -y neovim neovim-runtime 2>/dev/null || true
     fi
   fi
 
-  NVIM_APPIMAGE="nvim-${NVIM_ARCH}.appimage"
+  # 기존 /usr/local 설치분 제거
+  sudo rm -f /usr/local/bin/nvim 2>/dev/null || true
+  sudo rm -rf /opt/nvim 2>/dev/null || true
+
+  NVIM_TARBALL="nvim-${NVIM_ARCH}.tar.gz"
   TEMP_DIR=$(mktemp -d)
   cd "$TEMP_DIR"
 
-  echo "  다운로드 중: $NVIM_APPIMAGE"
-  curl -LO "https://github.com/neovim/neovim/releases/latest/download/${NVIM_APPIMAGE}"
-  chmod u+x "$NVIM_APPIMAGE"
-
-  if ./"$NVIM_APPIMAGE" --version &> /dev/null; then
-    sudo mv "$NVIM_APPIMAGE" /usr/local/bin/nvim
-    echo "Neovim AppImage 설치 완료"
-  else
-    echo "AppImage 직접 실행 불가. 압축 해제 방식으로 설치..."
-    ./"$NVIM_APPIMAGE" --appimage-extract > /dev/null 2>&1
-    sudo rm -rf /opt/neovim 2>/dev/null || true
-    sudo mv squashfs-root /opt/neovim
-    sudo ln -sf /opt/neovim/usr/bin/nvim /usr/local/bin/nvim
-    echo "Neovim 압축 해제 설치 완료"
+  echo "  다운로드 중: $NVIM_TARBALL"
+  if ! curl -fLO "https://github.com/neovim/neovim/releases/latest/download/${NVIM_TARBALL}"; then
+    echo "  다운로드 실패. 네트워크 또는 릴리스 URL을 확인하세요."
+    exit 1
   fi
+
+  tar -xzf "$NVIM_TARBALL"
+  EXTRACTED_DIR=$(find . -maxdepth 1 -type d -name "nvim-${NVIM_ARCH}*" | head -n1)
+  if [ -z "$EXTRACTED_DIR" ]; then
+    echo "  압축 해제 실패"
+    exit 1
+  fi
+
+  sudo mv "$EXTRACTED_DIR" /opt/nvim
+  sudo ln -sf /opt/nvim/bin/nvim /usr/local/bin/nvim
+  echo "Neovim tar.gz 설치 완료 (/opt/nvim)"
 
   cd - > /dev/null
   rm -rf "$TEMP_DIR"
 }
+
+install_build_tools_linux() {
+  # treesitter 파서는 런타임에 C로 컴파일되므로 gcc/make 필수
+  if command -v gcc &> /dev/null && command -v make &> /dev/null; then
+    return 0
+  fi
+
+  echo "  C 컴파일러 설치 중 (treesitter 파서 빌드용)..."
+  if command -v apt-get &> /dev/null; then
+    sudo apt-get install -y build-essential
+  elif command -v yum &> /dev/null; then
+    sudo yum groupinstall -y "Development Tools"
+  elif command -v dnf &> /dev/null; then
+    sudo dnf groupinstall -y "Development Tools"
+  else
+    echo "  경고: 패키지 매니저 감지 실패. gcc를 수동으로 설치하세요."
+  fi
+}
+
+# Linux에서는 nvim 버전과 무관하게 treesitter 파서 빌드 도구가 필요
+if [ "$MACHINE" = "Linux" ]; then
+  install_build_tools_linux
+fi
 
 if check_nvim_version; then
   NVIM_VERSION=$(nvim --version | head -n 1)

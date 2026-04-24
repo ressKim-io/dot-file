@@ -10,8 +10,9 @@ echo "다음 도구들을 설치합니다:"
 echo "   0. 기본 도구: curl, wget, git, gnupg (최초 설치 시)"
 echo "   1. 런타임: Go, Node.js, Python"
 echo "   2. Docker"
-echo "   3. Kubernetes 도구: kubectl, helm"
-echo "   4. DevOps 도구: terraform, jq, yq, yamllint, hadolint"
+echo "   3. Kubernetes 도구: kubectl, helm, k9s, stern"
+echo "   4. DevOps 도구: terraform, opentofu, jq, yq, yamllint, hadolint"
+echo "   5. 모던 CLI: fzf, bat, eza, zoxide, git-delta, direnv, pipx, Nerd Font"
 echo ""
 echo "⏱️  예상 시간: 10-20분"
 echo ""
@@ -34,7 +35,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo ""
 echo "=========================================="
-echo "STEP 0/4: 기본 도구 확인 및 설치"
+echo "STEP 0/5: 기본 도구 확인 및 설치"
 echo "=========================================="
 echo ""
 
@@ -205,7 +206,7 @@ echo ""
 
 echo ""
 echo "=========================================="
-echo "STEP 1/4: 런타임 설치"
+echo "STEP 1/5: 런타임 설치"
 echo "=========================================="
 echo ""
 
@@ -222,7 +223,7 @@ fi
 
 echo ""
 echo "=========================================="
-echo "STEP 2/4: Docker 설치"
+echo "STEP 2/5: Docker 설치"
 echo "=========================================="
 echo ""
 
@@ -244,7 +245,7 @@ fi
 
 echo ""
 echo "=========================================="
-echo "STEP 3/4: Kubernetes 도구 설치"
+echo "STEP 3/5: Kubernetes 도구 설치"
 echo "=========================================="
 echo ""
 
@@ -266,7 +267,7 @@ fi
 
 echo ""
 echo "=========================================="
-echo "STEP 4/4: DevOps 도구 설치"
+echo "STEP 4/5: DevOps 도구 설치"
 echo "=========================================="
 echo ""
 
@@ -280,6 +281,28 @@ if [[ ! $REPLY =~ ^[Nn]$ ]]; then
   fi
 else
   echo "⏭️  DevOps 도구 설치를 건너뜁니다."
+fi
+
+# ========================================
+# 5. 모던 CLI 도구 설치
+# ========================================
+
+echo ""
+echo "=========================================="
+echo "STEP 5/5: 모던 CLI 도구 설치"
+echo "=========================================="
+echo ""
+
+read -p "모던 CLI (fzf, bat, eza, zoxide, delta, direnv, pipx, Nerd Font)를 설치하시겠습니까? (Y/n): " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+  if [ -f "$SCRIPT_DIR/install-modern-cli.sh" ]; then
+    bash "$SCRIPT_DIR/install-modern-cli.sh"
+  else
+    echo "❌ install-modern-cli.sh를 찾을 수 없습니다."
+  fi
+else
+  echo "⏭️  모던 CLI 도구 설치를 건너뜁니다."
 fi
 
 # ========================================
@@ -311,18 +334,33 @@ echo ""
 
 # Kubernetes
 echo "☸️  Kubernetes:"
-command -v kubectl &> /dev/null && echo "   ✅ kubectl: $(kubectl version --client --short 2>/dev/null | awk '{print $3}' || echo 'installed')" || echo "   ❌ kubectl: 설치 안됨"
+command -v kubectl &> /dev/null && echo "   ✅ kubectl: $(kubectl version --client -o json 2>/dev/null | grep gitVersion | awk -F'\"' '{print $4}' || echo 'installed')" || echo "   ❌ kubectl: 설치 안됨"
 command -v helm &> /dev/null && echo "   ✅ helm: $(helm version --short 2>/dev/null | awk '{print $1}')" || echo "   ❌ helm: 설치 안됨"
+command -v k9s &> /dev/null && echo "   ✅ k9s: installed"
+command -v stern &> /dev/null && echo "   ✅ stern: installed"
 
 echo ""
 
 # DevOps 도구
 echo "🔧 DevOps:"
 command -v terraform &> /dev/null && echo "   ✅ terraform: $(terraform --version | head -n 1 | awk '{print $2}')" || echo "   ❌ terraform: 설치 안됨"
+command -v tofu &> /dev/null && echo "   ✅ opentofu: $(tofu --version | head -n 1 | awk '{print $2}')"
 command -v jq &> /dev/null && echo "   ✅ jq: $(jq --version)" || echo "   ❌ jq: 설치 안됨"
 command -v yq &> /dev/null && echo "   ✅ yq: $(yq --version 2>&1 | head -n 1 | awk '{print $3}')" || echo "   ❌ yq: 설치 안됨"
 command -v yamllint &> /dev/null && echo "   ✅ yamllint: $(yamllint --version | awk '{print $2}')" || echo "   ❌ yamllint: 설치 안됨"
 command -v hadolint &> /dev/null && echo "   ✅ hadolint: installed" || echo "   ❌ hadolint: 설치 안됨"
+
+echo ""
+
+# 모던 CLI
+echo "🎨 모던 CLI:"
+command -v fzf    &> /dev/null && echo "   ✅ fzf"
+(command -v bat &> /dev/null || command -v batcat &> /dev/null) && echo "   ✅ bat"
+command -v eza    &> /dev/null && echo "   ✅ eza"
+command -v zoxide &> /dev/null && echo "   ✅ zoxide"
+command -v delta  &> /dev/null && echo "   ✅ git-delta"
+command -v direnv &> /dev/null && echo "   ✅ direnv"
+command -v pipx   &> /dev/null && echo "   ✅ pipx"
 
 echo ""
 echo "=========================================="

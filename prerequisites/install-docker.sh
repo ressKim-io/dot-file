@@ -113,14 +113,25 @@ elif [ "$MACHINE" = "Linux" ]; then
       gnupg \
       lsb-release
 
+    # Ubuntu/Debian 구분 (Docker repo URL이 다름)
+    if [ -f /etc/os-release ]; then
+      DISTRO_ID=$(. /etc/os-release && echo "$ID")
+    else
+      DISTRO_ID="ubuntu"
+    fi
+    case "$DISTRO_ID" in
+      ubuntu|pop|elementary|linuxmint|zorin) DOCKER_DISTRO="ubuntu" ;;
+      debian|raspbian|kali)                  DOCKER_DISTRO="debian" ;;
+      *)                                     DOCKER_DISTRO="ubuntu" ;;
+    esac
+
     # Docker GPG 키 추가
-    echo "🔑 Docker GPG 키 추가 중..."
+    echo "🔑 Docker GPG 키 추가 중 ($DOCKER_DISTRO)..."
     sudo mkdir -p /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    curl -fsSL "https://download.docker.com/linux/${DOCKER_DISTRO}/gpg" | sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
 
     # Docker 리포지토리 추가
     echo "📦 Docker 리포지토리 추가 중..."
-    # lsb_release가 없을 경우 /etc/os-release에서 읽기
     if command -v lsb_release &> /dev/null; then
       DISTRO_CODENAME=$(lsb_release -cs)
     elif [ -f /etc/os-release ]; then
@@ -130,7 +141,7 @@ elif [ "$MACHINE" = "Linux" ]; then
       exit 1
     fi
     echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${DOCKER_DISTRO} \
       $DISTRO_CODENAME stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
     # Docker 설치

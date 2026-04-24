@@ -76,7 +76,8 @@ ec2ssh() {
   fi
 
   local instance_id="$1"
-  local key_path="${2:-~/.ssh/aws-key.pem}"  # 기본 키 경로
+  # 주의: "${VAR:-~/path}" 형태는 ~ 확장이 안 되므로 $HOME 사용
+  local key_path="${2:-$HOME/.ssh/aws-key.pem}"
   local username="${3:-ec2-user}"  # 기본 사용자 (AMI에 따라 변경)
 
   local ip=$(aws ec2 describe-instances \
@@ -121,8 +122,9 @@ ec2find() {
 }
 
 # ========================================
-# ☁️  AWS Scripts PATH
+# ☁️  AWS Scripts PATH (실존하는 디렉토리만 PATH에 추가)
 # ========================================
-export PATH="$HOME/aws-scripts/ec2:$PATH"
-export PATH="$HOME/aws-scripts/cost:$PATH"
-export PATH="$HOME/aws-scripts/security:$PATH"
+for _aws_script_dir in "$HOME/aws-scripts/ec2" "$HOME/aws-scripts/cost" "$HOME/aws-scripts/security"; do
+  [ -d "$_aws_script_dir" ] && export PATH="$_aws_script_dir:$PATH"
+done
+unset _aws_script_dir

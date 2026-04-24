@@ -62,6 +62,29 @@ get_distro_codename() {
   fi
 }
 
+# HashiCorp apt 저장소가 지원하는 코드명으로 매핑 (미지원 신규 배포판은 가장 가까운 LTS로 fallback)
+# HashiCorp 공식 지원: focal, jammy, noble, bullseye, bookworm
+map_to_hashicorp_codename() {
+  local codename="$1"
+  case "$codename" in
+    focal|jammy|noble|bullseye|bookworm)
+      echo "$codename"
+      ;;
+    # Ubuntu 신버전 (oracular, plucky, questing 등) → noble (24.04 LTS)로 매핑
+    oracular|plucky|questing|resolute)
+      echo "noble"
+      ;;
+    # Debian trixie (13) 등 신버전 → bookworm으로 매핑
+    trixie|forky)
+      echo "bookworm"
+      ;;
+    *)
+      # 알 수 없는 경우 가장 보수적인 jammy로 fallback
+      echo "jammy"
+      ;;
+  esac
+}
+
 # ========================================
 # 1. Terraform 설치
 # ========================================
@@ -97,12 +120,12 @@ else
 
       # HashiCorp 리포지토리 추가
       echo "📦 HashiCorp 리포지토리 추가 중..."
-      DISTRO_CODENAME=$(get_distro_codename)
-      if [ "$DISTRO_CODENAME" = "unknown" ]; then
-        echo "⚠️  배포판 코드명을 확인할 수 없어 jammy를 사용합니다."
-        DISTRO_CODENAME="jammy"
+      RAW_CODENAME=$(get_distro_codename)
+      HC_CODENAME=$(map_to_hashicorp_codename "$RAW_CODENAME")
+      if [ "$HC_CODENAME" != "$RAW_CODENAME" ]; then
+        echo "ℹ️  $RAW_CODENAME은 HashiCorp 공식 지원 목록에 없어 $HC_CODENAME 패키지를 사용합니다."
       fi
-      echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $DISTRO_CODENAME main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+      echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $HC_CODENAME main" | sudo tee /etc/apt/sources.list.d/hashicorp.list > /dev/null
 
       # Terraform 설치
       echo "📥 Terraform 설치 중..."
@@ -128,6 +151,56 @@ else
       echo "⚠️  Terraform 자동 설치를 지원하지 않는 배포판입니다."
       echo "   수동 설치: https://developer.hashicorp.com/terraform/downloads"
     fi
+  fi
+fi
+
+echo ""
+
+# ========================================
+# 1.5. OpenTofu 설치 (Terraform 오픈소스 포크)
+# ========================================
+
+echo "=========================================="
+echo "📦 OpenTofu 설치 (Terraform 오픈소스 포크)"
+echo "=========================================="
+echo ""
+
+if command -v tofu &> /dev/null; then
+  echo "✅ OpenTofu 이미 설치됨: $(tofu --version | head -n 1)"
+else
+  echo "📥 OpenTofu 설치 중..."
+
+  if [ "$MACHINE" = "Mac" ]; then
+    if command -v brew &> /dev/null; then
+      brew install opentofu
+    fi
+  elif [ "$MACHINE" = "Linux" ]; then
+    # OpenTofu 공식 설치 스크립트 (가장 신뢰할 수 있음)
+    TMPSCRIPT=$(mktemp)
+    if curl -fsSL https://get.opentofu.org/install-opentofu.sh -o "$TMPSCRIPT"; then
+      chmod +x "$TMPSCRIPT"
+      # 설치 방식: standalone (deb/rpm 의존성 피함)
+      if "$TMPSCRIPT" --install-method standalone --install-path /usr/local/bin --skip-verify 2>/dev/null; then
+        echo "✅ OpenTofu 설치 완료: $(tofu --version | head -n 1)"
+      else
+        # 폴백: GitHub 릴리스 직접 다운로드
+        ARCH=$(uname -m)
+        case $ARCH in
+          x86_64) TOFU_ARCH="amd64" ;;
+          aarch64|arm64) TOFU_ARCH="arm64" ;;
+          *) TOFU_ARCH="amd64" ;;
+        esac
+        TOFU_VERSION=$(curl -s --connect-timeout 10 https://api.github.com/repos/opentofu/opentofu/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+        [ -z "$TOFU_VERSION" ] && TOFU_VERSION="1.10.6"
+        TMPDIR=$(mktemp -d)
+        if curl -fsSL "https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_${TOFU_ARCH}.zip" -o "$TMPDIR/tofu.zip"; then
+          (cd "$TMPDIR" && unzip -qo tofu.zip && sudo install -m 0755 tofu /usr/local/bin/tofu)
+          echo "✅ OpenTofu 설치 완료: v$TOFU_VERSION"
+        fi
+        rm -rf "$TMPDIR"
+      fi
+    fi
+    rm -f "$TMPSCRIPT"
   fi
 fi
 
@@ -232,10 +305,19 @@ else
     if command -v apt-get &> /dev/null; then
       sudo apt-get update
       sudo apt-get install -y yamllint
+    elif command -v pipx &> /dev/null; then
+      pipx install yamllint
     elif command -v pip3 &> /dev/null; then
-      pip3 install --user yamllint
+      # Ubuntu 24.04+는 PEP 668로 pip3 install --user이 차단됨
+      # pipx가 없으면 pipx 설치를 시도하고, 실패 시에만 최후 수단으로 --break-system-packages 사용
+      if command -v apt-get &> /dev/null; then
+        sudo apt-get install -y pipx && pipx install yamllint
+      else
+        echo "⚠️  pipx가 없어 pip3 --break-system-packages로 설치합니다."
+        pip3 install --user --break-system-packages yamllint 2>/dev/null || pip3 install --user yamllint
+      fi
     else
-      echo "⚠️  yamllint 설치 실패: apt-get 또는 pip3가 필요합니다."
+      echo "⚠️  yamllint 설치 실패: apt-get 또는 pipx가 필요합니다."
     fi
   fi
 
@@ -321,17 +403,15 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     elif [ "$MACHINE" = "Linux" ]; then
       if command -v apt-get &> /dev/null; then
         sudo apt-get install -y wget apt-transport-https gnupg 2>/dev/null || true
-        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
-        DISTRO_CODENAME=$(get_distro_codename)
-        if [ "$DISTRO_CODENAME" = "unknown" ]; then
-          DISTRO_CODENAME="jammy"
-        fi
-        echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $DISTRO_CODENAME main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor --yes -o /usr/share/keyrings/trivy.gpg
+        # 주의: Trivy repo는 distro 코드명이 아닌 "generic"을 사용함 (공식 문서 기준)
+        # tee -a로 append하면 재실행 시 중복되므로 tee로 overwrite
+        echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee /etc/apt/sources.list.d/trivy.list > /dev/null
         sudo apt-get update
         sudo apt-get install -y trivy
       else
         echo "⚠️  trivy 자동 설치는 Ubuntu/Debian에서만 지원됩니다."
-        echo "   수동 설치: https://aquasecurity.github.io/trivy/latest/getting-started/installation/"
+        echo "   수동 설치: https://trivy.dev/docs/latest/getting-started/installation/"
       fi
     fi
     if command -v trivy &> /dev/null; then

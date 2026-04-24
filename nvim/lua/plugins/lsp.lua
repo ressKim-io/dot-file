@@ -19,7 +19,9 @@ return {
     end,
   },
 
-  -- Mason-LSPConfig: mason과 lspconfig 연동
+  -- Mason-LSPConfig: mason과 lspconfig 연동 (v2.0+)
+  -- v2부터 automatic_installation 제거, automatic_enable이 서버를 자동 활성화
+  -- vim.lsp.enable()을 명시적으로 호출하므로 automatic_enable = false로 중복 방지
   {
     "williamboman/mason-lspconfig.nvim",
     dependencies = { "williamboman/mason.nvim" },
@@ -35,7 +37,7 @@ return {
           "dockerls",
           "lua_ls",
         },
-        automatic_installation = true,
+        automatic_enable = false,
       })
     end,
   },

@@ -49,7 +49,8 @@ if [ "$MACHINE" = "Mac" ]; then
   # kubectx 설치
   if command -v kubectx &> /dev/null; then
     echo "⚠️  kubectx가 이미 설치되어 있습니다."
-    kubectx --version
+    # 구버전 kubectx는 --version을 지원하지 않아 set -e에서 abort되므로 fallback
+    kubectx --version 2>/dev/null || echo "   (version 정보 없음)"
     echo ""
     read -p "다시 설치하시겠습니까? (y/N): " -n 1 -r
     echo
@@ -77,9 +78,13 @@ elif [ "$MACHINE" = "Linux" ]; then
   INSTALL_DIR="$HOME/.kubectx"
   BIN_DIR="/usr/local/bin"
 
-  # 기존 설치 확인
-  if [ -d "$INSTALL_DIR" ]; then
-    echo "⚠️  $INSTALL_DIR 가 이미 존재합니다."
+  # 기존 설치 확인 (prerequisites로 이미 /usr/local/bin에 직접 설치된 경우 포함)
+  if [ -d "$INSTALL_DIR" ] || command -v kubectx &> /dev/null; then
+    if [ -d "$INSTALL_DIR" ]; then
+      echo "⚠️  $INSTALL_DIR 가 이미 존재합니다."
+    else
+      echo "⚠️  kubectx가 이미 $(which kubectx)에 설치되어 있습니다 (prerequisites로 설치된 것으로 추정)."
+    fi
     echo ""
     read -p "다시 설치하시겠습니까? (y/N): " -n 1 -r
     echo

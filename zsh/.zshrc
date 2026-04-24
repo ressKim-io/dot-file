@@ -86,10 +86,16 @@ if is_wsl; then
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
-    # Go 설정
-    export GOROOT=/usr/lib/go
+    # Go 설정 (prerequisites는 /usr/local/go에 설치, apt는 /usr/lib/go에 설치)
+    if [ -d "/usr/local/go" ]; then
+        export GOROOT=/usr/local/go
+    elif [ -d "/usr/lib/go" ]; then
+        export GOROOT=/usr/lib/go
+    fi
     export GOPATH=$HOME/go
-    export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+    if [ -n "$GOROOT" ]; then
+        export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+    fi
     export PATH="$PATH:$HOME/.local/bin"
 
     # WSL 터미널 색상 보정
@@ -129,6 +135,47 @@ fi
 
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# Ubuntu apt로 설치된 fzf는 /usr/share/doc/fzf/examples/ 에 키바인딩 있음
+[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
+[ -f /usr/share/doc/fzf/examples/completion.zsh ]   && source /usr/share/doc/fzf/examples/completion.zsh
+
+# ========================================
+# 🎨 모던 CLI 도구 (설치된 경우에만 활성화)
+# ========================================
+
+# zoxide: cd 대체 (z <dir>, zi 인터랙티브)
+if command -v zoxide &> /dev/null; then
+  eval "$(zoxide init zsh)"
+fi
+
+# eza: ls 대체 (아이콘/git 상태 지원)
+if command -v eza &> /dev/null; then
+  alias ls='eza --icons=auto --group-directories-first'
+  alias ll='eza -l --icons=auto --group-directories-first --git'
+  alias la='eza -la --icons=auto --group-directories-first --git'
+  alias lt='eza --tree --level=2 --icons=auto --group-directories-first'
+fi
+
+# bat: cat 대체 (Ubuntu는 batcat 이름)
+if command -v bat &> /dev/null; then
+  alias cat='bat --paging=never'
+elif command -v batcat &> /dev/null; then
+  alias bat='batcat'
+  alias cat='batcat --paging=never'
+fi
+
+# git-delta: git 설치 시 pager로 등록되어 있지 않으면 ~/.gitconfig에 추가 권장
+# (자동 수정은 하지 않고, 명령어만 안내)
+# git config --global core.pager "delta"
+# git config --global delta.syntax-theme "Dracula"
+
+# direnv: 프로젝트별 .envrc 자동 로드
+if command -v direnv &> /dev/null; then
+  eval "$(direnv hook zsh)"
+fi
+
+# pipx 로컬 bin 경로
+[ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
 
 # 호스트 이름 제거
 unset HOST
@@ -168,6 +215,11 @@ if command -v kubectl &> /dev/null; then
   alias kgs='kubectl get svc'
   alias kgd='kubectl get deploy'
   alias kdel='kubectl delete'
+fi
+
+# stern (다중 Pod 로그 tail)
+if command -v stern &> /dev/null; then
+  alias ks='stern'  # ks <pod-prefix>
 fi
 
 # kubectx + kubens (설치 시 주석 해제)

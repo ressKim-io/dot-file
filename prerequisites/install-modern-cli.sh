@@ -398,7 +398,32 @@ fi
 echo ""
 
 # ========================================
-# 14. Nerd Font (JetBrainsMono)
+# 14. starship (모던 cross-shell 프롬프트, opt-in)
+# ========================================
+# 설치만 하고 .zshrc에는 주석 처리된 init 스니펫만 추가됩니다.
+# 활성화하려면 .zshrc 하단의 # eval "$(starship init zsh)" 주석을 풀고,
+# 기존 커스텀 PROMPT 블록(MAC/WSL/LINUX 분기)을 주석 처리하세요.
+echo "=========================================="
+echo "📦 starship 설치 (모던 프롬프트, opt-in)"
+echo "=========================================="
+
+if command -v starship &> /dev/null; then
+  echo "✅ starship 이미 설치됨: $(starship --version | head -n 1 | awk '{print $2}')"
+else
+  if [ "$MACHINE" = "Mac" ]; then
+    command -v brew &> /dev/null && brew install starship
+  elif [ "$MACHINE" = "Linux" ]; then
+    # 공식 설치 스크립트 (~/.local/bin 또는 /usr/local/bin)
+    curl -sS https://starship.rs/install.sh | sh -s -- -y --bin-dir /usr/local/bin 2>/dev/null || \
+      curl -sS https://starship.rs/install.sh | sudo sh -s -- -y --bin-dir /usr/local/bin
+  fi
+  command -v starship &> /dev/null && echo "✅ starship 설치 완료"
+  echo "💡 활성화: ~/.zshrc 하단의 starship 블록 주석 해제 (기존 PROMPT 비활성화 필요)"
+fi
+echo ""
+
+# ========================================
+# 15. Nerd Font (JetBrainsMono)
 # ========================================
 echo "=========================================="
 echo "🔤 Nerd Font 설치 (JetBrainsMono)"
@@ -460,6 +485,7 @@ command -v lazygit &> /dev/null && echo "   ✅ lazygit"
 command -v lazydocker &> /dev/null && echo "   ✅ lazydocker"
 command -v dive &> /dev/null && echo "   ✅ dive"
 command -v tldr &> /dev/null && echo "   ✅ tldr (tealdeer)"
+command -v starship &> /dev/null && echo "   ✅ starship (opt-in, .zshrc 주석 해제 필요)"
 echo ""
 echo "💡 .zshrc에서 이들을 활성화하려면:"
 echo "   cd zsh && ./install.sh"

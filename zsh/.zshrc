@@ -307,3 +307,15 @@ ZSH_THEME_GIT_PROMPT_PREFIX=" ‹"
 ZSH_THEME_GIT_PROMPT_SUFFIX="›"
 ZSH_THEME_GIT_PROMPT_DIRTY="●"
 ZSH_THEME_GIT_PROMPT_CLEAN=""
+
+# ========================================
+# 🚀 starship 프롬프트 (opt-in)
+# ========================================
+# starship은 modern cross-shell 프롬프트입니다.
+# 활성화하려면:
+#   1. 위 "프롬프트 커스터마이징" 블록(287~304)의 PROMPT 분기를 주석 처리
+#   2. 아래 한 줄 주석 해제
+#   3. 새 셸 시작 또는 source ~/.zshrc
+# 설정 파일: ~/.config/starship.toml (없으면 starship preset 추천)
+#
+# command -v starship &> /dev/null && eval "$(starship init zsh)"

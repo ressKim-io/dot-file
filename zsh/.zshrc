@@ -319,3 +319,14 @@ ZSH_THEME_GIT_PROMPT_CLEAN=""
 # 설정 파일: ~/.config/starship.toml (없으면 starship preset 추천)
 #
 # command -v starship &> /dev/null && eval "$(starship init zsh)"
+
+# ========================================
+# 🔍 atuin 셸 히스토리 검색 (opt-in)
+# ========================================
+# atuin은 SQLite 기반 셸 히스토리로 Ctrl+R을 강력한 검색 UI로 대체합니다.
+# 활성화하면 기본 fzf 히스토리 검색과 동작이 달라집니다.
+# 첫 실행 시 ~/.local/share/atuin/history.db에 기존 히스토리를 import할 수 있습니다:
+#   atuin import auto
+# 동기화(선택): atuin register / atuin login
+#
+# command -v atuin &> /dev/null && eval "$(atuin init zsh)"

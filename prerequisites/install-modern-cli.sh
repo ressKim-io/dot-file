@@ -423,7 +423,31 @@ fi
 echo ""
 
 # ========================================
-# 15. Nerd Font (JetBrainsMono)
+# 15. atuin (SQLite 기반 셸 히스토리 검색, opt-in)
+# ========================================
+# 설치만 하고 .zshrc에는 주석 처리된 init 스니펫만 추가됩니다.
+# 활성화하면 Ctrl+R이 atuin 검색 UI로 대체됩니다 (기본 fzf-history와 충돌 가능).
+echo "=========================================="
+echo "📦 atuin 설치 (셸 히스토리 검색, opt-in)"
+echo "=========================================="
+
+if command -v atuin &> /dev/null; then
+  echo "✅ atuin 이미 설치됨: $(atuin --version | awk '{print $2}')"
+else
+  if [ "$MACHINE" = "Mac" ]; then
+    command -v brew &> /dev/null && brew install atuin
+  elif [ "$MACHINE" = "Linux" ]; then
+    # 공식 설치 스크립트
+    curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh -s -- --no-modify-path 2>/dev/null || \
+      curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+  fi
+  command -v atuin &> /dev/null && echo "✅ atuin 설치 완료"
+  echo "💡 활성화: ~/.zshrc 하단의 atuin 블록 주석 해제 (Ctrl+R 동작 변경됨)"
+fi
+echo ""
+
+# ========================================
+# 16. Nerd Font (JetBrainsMono)
 # ========================================
 echo "=========================================="
 echo "🔤 Nerd Font 설치 (JetBrainsMono)"
@@ -486,6 +510,7 @@ command -v lazydocker &> /dev/null && echo "   ✅ lazydocker"
 command -v dive &> /dev/null && echo "   ✅ dive"
 command -v tldr &> /dev/null && echo "   ✅ tldr (tealdeer)"
 command -v starship &> /dev/null && echo "   ✅ starship (opt-in, .zshrc 주석 해제 필요)"
+command -v atuin &> /dev/null && echo "   ✅ atuin (opt-in, .zshrc 주석 해제 필요)"
 echo ""
 echo "💡 .zshrc에서 이들을 활성화하려면:"
 echo "   cd zsh && ./install.sh"

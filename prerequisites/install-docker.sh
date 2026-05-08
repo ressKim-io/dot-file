@@ -65,8 +65,20 @@ if [ "$MACHINE" = "Mac" ]; then
   echo ""
 
   if command -v brew &> /dev/null; then
+    # Homebrew cask 이름이 'docker' → 'docker-desktop'으로 변경됨
+    # (구 'docker' cask는 CLI 전용 패키지를 가리킴)
+    DOCKER_CASK="docker-desktop"
+
+    # 잔여 cask 상태 정리: 메타데이터만 남고 앱이 사라진 경우 강제 제거
+    if brew list --cask "$DOCKER_CASK" &> /dev/null; then
+      if [ ! -d "/Applications/Docker.app" ]; then
+        echo "⚠️  잔여 Docker Desktop cask 상태 감지됨. 정리 중..."
+        brew uninstall --cask --force "$DOCKER_CASK" 2>/dev/null || true
+      fi
+    fi
+
     echo "✅ Homebrew로 Docker Desktop 설치 중..."
-    brew install --cask docker
+    brew install --cask "$DOCKER_CASK"
 
     echo ""
     echo "=========================================="

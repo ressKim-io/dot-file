@@ -41,8 +41,11 @@ dotfiles/
 │   ├── README.md
 │   ├── install.sh              # 자동 설치 + 플러그인
 │   └── .vimrc                  # 설정 파일
+├── tmux/                        # ✅ tmux + TPM 설정
+│   ├── README.md
+│   ├── install.sh              # tmux + TPM + 플러그인 자동 설치
+│   └── .tmux.conf              # 메인 설정
 ├── git/                         # (예정) Git 설정
-├── tmux/                        # (예정) Tmux 설정
 └── docker/                      # (예정) Docker 관련 설정
 ```
 
@@ -119,6 +122,10 @@ cd aws
 # Vim 사용 시
 cd vim
 ./install.sh
+
+# tmux 사용 시
+cd tmux
+./install.sh
 ```
 
 ---
@@ -137,6 +144,7 @@ cd nvim && ./install.sh && cd ..
 # 선택사항
 cd aws && ./install.sh && cd ..  # AWS CLI 사용 시
 cd vim && ./install.sh && cd ..  # Vim 사용 시
+cd tmux && ./install.sh && cd .. # tmux 사용 시
 ```
 
 ---
@@ -191,6 +199,13 @@ cd vim && ./install.sh && cd ..  # Vim 사용 시
 - ✅ fzf, NERDTree
 - ✅ 레거시 서버 대응
 
+### tmux
+- ✅ TPM + sensible/yank/resurrect/continuum 플러그인
+- ✅ vim 친화 키바인딩 (h/j/k/l 페인 이동)
+- ✅ 직관적 분할 (`prefix + |` / `-`)
+- ✅ kubectl 컨텍스트 상태바 표시
+- ✅ 세션 자동 저장/복원 (15분 주기)
+
 ---
 
 ## 📋 예정된 설정
@@ -198,10 +213,6 @@ cd vim && ./install.sh && cd ..  # Vim 사용 시
 ### git (예정)
 - Git 글로벌 설정
 - Git alias (gst, gco, gp 등)
-
-### tmux (예정)
-- Tmux 설정
-- 단축키 커스터마이징
 
 ### docker (우선순위 낮음)
 - Docker Compose alias

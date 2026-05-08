@@ -111,8 +111,13 @@ sudo apt-get install -y curl wget git build-essential
 - **Go**: `https://go.dev/VERSION?m=text`
 - **Node.js**: nvm을 통해 LTS 자동 설치
 - **kubectl**: `https://dl.k8s.io/release/stable.txt`
-- **Helm**: 공식 설치 스크립트 (항상 최신)
+- **Helm**: 공식 설치 스크립트 (항상 최신, 2025-11 이후 **Helm 4** 설치됨)
 - **yq, hadolint**: GitHub Releases API 사용
+
+> ⚠️ **Helm 4 전환 안내**: 2025-11-12 이후 `get_helm.sh`는 Helm 4를 설치합니다.
+> server-side apply, WASM 기반 플러그인, kstatus 도입 등 동작이 일부 변경되었습니다.
+> v3 가정 차트를 사용 중이라면 [Helm 4 마이그레이션 가이드](https://helm.sh/docs/topics/v3_v4_migration/)를 확인하고,
+> 명시적으로 v3가 필요하면 `helm-v3` 별칭 또는 별도 바이너리 설치를 권장합니다.
 
 ### 공식 설치 방법 사용
 

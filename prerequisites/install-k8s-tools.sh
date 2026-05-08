@@ -265,6 +265,75 @@ else
   fi
 fi
 
+# ========================================
+# 6. kustomize 설치 (K8s 매니페스트 합성)
+# ========================================
+
+echo ""
+echo "=========================================="
+echo "📦 kustomize 설치 (매니페스트 합성)"
+echo "=========================================="
+
+if command -v kustomize &> /dev/null; then
+  echo "✅ kustomize 이미 설치됨: $(kustomize version | head -n 1)"
+else
+  echo "📥 kustomize 설치 중..."
+  if [ "$MACHINE" = "Mac" ]; then
+    if command -v brew &> /dev/null; then
+      brew install kustomize
+    fi
+  elif [ "$MACHINE" = "Linux" ]; then
+    # 공식 install_kustomize.sh 사용 (helm의 get_helm.sh와 동일한 패턴)
+    TMPDIR=$(mktemp -d)
+    if (cd "$TMPDIR" && curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash); then
+      sudo install -m 0755 "$TMPDIR/kustomize" /usr/local/bin/kustomize
+      echo "✅ kustomize 설치 완료"
+    else
+      echo "⚠️  kustomize 다운로드 실패, 수동 설치가 필요합니다."
+    fi
+    rm -rf "$TMPDIR"
+  fi
+fi
+
+# ========================================
+# 7. krew 설치 (kubectl 플러그인 매니저) + 핵심 플러그인
+# ========================================
+
+echo ""
+echo "=========================================="
+echo "📦 krew 설치 (kubectl 플러그인 매니저)"
+echo "=========================================="
+
+if command -v kubectl &> /dev/null && kubectl krew version &> /dev/null; then
+  echo "✅ krew 이미 설치됨"
+else
+  echo "📥 krew 설치 중..."
+  TMPDIR=$(mktemp -d)
+  if (
+    cd "$TMPDIR" && \
+    OS_LOWER="$(uname | tr '[:upper:]' '[:lower:]')" && \
+    KREW_ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" && \
+    KREW="krew-${OS_LOWER}_${KREW_ARCH}" && \
+    curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" && \
+    tar zxf "${KREW}.tar.gz" && \
+    "./${KREW}" install krew
+  ); then
+    echo "✅ krew 설치 완료"
+    echo "ℹ️  PATH 설정: ~/.zshrc에 export PATH=\"\${KREW_ROOT:-\$HOME/.krew}/bin:\$PATH\" 추가 필요"
+    echo "   (zsh 모듈 install.sh가 자동으로 처리합니다)"
+
+    # 핵심 플러그인 자동 설치 (PATH 설정 후 동작하므로 직접 호출)
+    KREW_BIN="$HOME/.krew/bin/kubectl-krew"
+    if [ -x "$KREW_BIN" ]; then
+      echo "📥 핵심 플러그인 설치 중 (tree, neat, who-can)..."
+      "$KREW_BIN" install tree neat who-can 2>&1 | grep -E "Installed plugin|already installed" || true
+    fi
+  else
+    echo "⚠️  krew 설치 실패"
+  fi
+  rm -rf "$TMPDIR"
+fi
+
 echo ""
 echo "=========================================="
 echo "✅ Kubernetes 도구 설치 완료!"
@@ -277,6 +346,8 @@ command -v kubectx &> /dev/null && echo "   - kubectx: $(kubectx --version 2>/de
 command -v kubens &> /dev/null && echo "   - kubens: $(kubens --version 2>/dev/null || echo 'installed')"
 command -v k9s &> /dev/null && echo "   - k9s: installed"
 command -v stern &> /dev/null && echo "   - stern: installed"
+command -v kustomize &> /dev/null && echo "   - kustomize: $(kustomize version | head -n 1)"
+[ -x "$HOME/.krew/bin/kubectl-krew" ] && echo "   - krew: $("$HOME"/.krew/bin/kubectl-krew version 2>/dev/null | grep GitTag | awk '{print $2}' || echo 'installed')"
 echo ""
 echo "🧪 테스트:"
 echo "   kubectl version --client"

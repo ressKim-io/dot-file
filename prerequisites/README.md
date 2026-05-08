@@ -25,20 +25,34 @@
 ### ☸️ Kubernetes 도구
 - **kubectl** (최신 stable 버전)
   - Kubernetes CLI
-- **helm** (최신 버전)
+- **helm** (최신 버전, Helm 4)
   - Kubernetes 패키지 관리자
 - **kubectx + kubens** (선택사항)
   - 컨텍스트/네임스페이스 빠른 전환
+- **k9s** - 클러스터 TUI 대시보드
+- **stern** - 다중 Pod 로그 tail
+- **kustomize** - K8s 매니페스트 합성
+- **krew** + 핵심 플러그인(`tree`, `neat`, `who-can`)
+  - kubectl 플러그인 매니저
 
 ### 🔧 DevOps 도구
 - **terraform** (HashiCorp 공식)
   - Infrastructure as Code
+- **OpenTofu** - Terraform 오픈소스 포크
+- **gh** - GitHub CLI
 - **jq** - JSON 파싱
 - **yq** - YAML 파싱 (Go 버전)
 - **yamllint** - YAML 린터
 - **hadolint** - Dockerfile 린터
 - **tflint** (선택사항) - Terraform 린터
 - **trivy** (선택사항) - 보안 스캐너
+
+### 🎨 모던 CLI
+- **fzf**, **bat**, **eza**, **zoxide**, **git-delta**, **direnv**, **pipx**
+- **ripgrep (rg)** - 빠른 grep 대체
+- **fd** - 사용자 친화적 find 대체
+- **lazygit** - Git TUI
+- **JetBrainsMono Nerd Font**
 
 ---
 

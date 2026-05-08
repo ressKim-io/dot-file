@@ -422,6 +422,38 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   fi
 fi
 
+# ========================================
+# gh (GitHub CLI)
+# ========================================
+echo ""
+echo "=========================================="
+echo "📦 gh 설치 (GitHub CLI)"
+echo "=========================================="
+
+if command -v gh &> /dev/null; then
+  echo "✅ gh 이미 설치됨: $(gh --version | head -n 1 | awk '{print $3}')"
+else
+  if [ "$MACHINE" = "Mac" ]; then
+    command -v brew &> /dev/null && brew install gh
+  elif [ "$MACHINE" = "Linux" ]; then
+    if command -v apt-get &> /dev/null; then
+      # 공식 apt 저장소 추가 (https://github.com/cli/cli/blob/trunk/docs/install_linux.md)
+      sudo mkdir -p -m 755 /etc/apt/keyrings
+      wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+        | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+      sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+        | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+      sudo apt-get update
+      sudo apt-get install -y gh
+    fi
+  fi
+  if command -v gh &> /dev/null; then
+    echo "✅ gh 설치 완료"
+    echo "💡 인증: gh auth login"
+  fi
+fi
+
 echo ""
 echo "=========================================="
 echo "✅ DevOps 도구 설치 완료!"
@@ -435,6 +467,7 @@ command -v yamllint &> /dev/null && echo "   - yamllint: $(yamllint --version)"
 command -v hadolint &> /dev/null && echo "   - hadolint: $(hadolint --version | head -n 1)"
 command -v tflint &> /dev/null && echo "   - tflint: $(tflint --version | head -n 1)"
 command -v trivy &> /dev/null && echo "   - trivy: $(trivy --version | head -n 1)"
+command -v gh &> /dev/null && echo "   - gh: $(gh --version | head -n 1 | awk '{print $3}')"
 echo ""
 echo "🧪 테스트:"
 echo "   terraform --version"

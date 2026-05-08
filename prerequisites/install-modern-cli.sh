@@ -222,7 +222,86 @@ fi
 echo ""
 
 # ========================================
-# 8. Nerd Font (JetBrainsMono)
+# 8. ripgrep (빠른 grep 대체)
+# ========================================
+echo "=========================================="
+echo "📦 ripgrep 설치 (빠른 grep 대체)"
+echo "=========================================="
+
+if command -v rg &> /dev/null; then
+  echo "✅ ripgrep 이미 설치됨: $(rg --version | head -n 1 | awk '{print $2}')"
+else
+  if [ "$MACHINE" = "Mac" ]; then
+    command -v brew &> /dev/null && brew install ripgrep
+  elif [ "$MACHINE" = "Linux" ]; then
+    if command -v apt-get &> /dev/null; then
+      sudo apt-get install -y ripgrep
+    fi
+  fi
+  command -v rg &> /dev/null && echo "✅ ripgrep 설치 완료"
+fi
+echo ""
+
+# ========================================
+# 9. fd (사용자 친화적 find 대체)
+# ========================================
+echo "=========================================="
+echo "📦 fd 설치 (사용자 친화적 find 대체)"
+echo "=========================================="
+
+if command -v fd &> /dev/null || command -v fdfind &> /dev/null; then
+  echo "✅ fd 이미 설치됨"
+else
+  if [ "$MACHINE" = "Mac" ]; then
+    command -v brew &> /dev/null && brew install fd
+  elif [ "$MACHINE" = "Linux" ]; then
+    if command -v apt-get &> /dev/null; then
+      # Ubuntu/Debian에서는 'fdfind'로 설치됨 - fd 심볼릭 링크 생성
+      sudo apt-get install -y fd-find
+      if ! command -v fd &> /dev/null && command -v fdfind &> /dev/null; then
+        mkdir -p "$HOME/.local/bin"
+        ln -sf "$(which fdfind)" "$HOME/.local/bin/fd"
+        echo "ℹ️  Ubuntu는 fdfind으로 설치되어 ~/.local/bin/fd 심볼릭 링크를 생성했습니다."
+      fi
+    fi
+  fi
+fi
+echo ""
+
+# ========================================
+# 10. lazygit (Git TUI)
+# ========================================
+echo "=========================================="
+echo "📦 lazygit 설치 (Git TUI)"
+echo "=========================================="
+
+if command -v lazygit &> /dev/null; then
+  echo "✅ lazygit 이미 설치됨: $(lazygit --version | head -n 1 | awk -F'version=' '{print $2}' | awk -F',' '{print $1}')"
+else
+  if [ "$MACHINE" = "Mac" ]; then
+    command -v brew &> /dev/null && brew install lazygit
+  elif [ "$MACHINE" = "Linux" ]; then
+    case "$(uname -m)" in
+      x86_64) LG_ARCH="x86_64" ;;
+      aarch64|arm64) LG_ARCH="arm64" ;;
+      *) LG_ARCH="x86_64" ;;
+    esac
+    LG_VERSION=$(get_latest_github_tag "jesseduffield/lazygit" "0.61.1")
+    TMPDIR=$(mktemp -d)
+    if curl -fsSL "https://github.com/jesseduffield/lazygit/releases/download/v${LG_VERSION}/lazygit_${LG_VERSION}_Linux_${LG_ARCH}.tar.gz" -o "$TMPDIR/lazygit.tar.gz"; then
+      tar -xzf "$TMPDIR/lazygit.tar.gz" -C "$TMPDIR" lazygit
+      sudo install -m 0755 "$TMPDIR/lazygit" /usr/local/bin/lazygit
+      echo "✅ lazygit 설치 완료: $LG_VERSION"
+    else
+      echo "⚠️  lazygit 다운로드 실패"
+    fi
+    rm -rf "$TMPDIR"
+  fi
+fi
+echo ""
+
+# ========================================
+# 11. Nerd Font (JetBrainsMono)
 # ========================================
 echo "=========================================="
 echo "🔤 Nerd Font 설치 (JetBrainsMono)"
@@ -278,6 +357,9 @@ command -v eza    &> /dev/null && echo "   ✅ eza"
 command -v zoxide &> /dev/null && echo "   ✅ zoxide"
 command -v delta  &> /dev/null && echo "   ✅ git-delta"
 command -v direnv &> /dev/null && echo "   ✅ direnv"
+command -v rg     &> /dev/null && echo "   ✅ ripgrep"
+(command -v fd &> /dev/null || command -v fdfind &> /dev/null) && echo "   ✅ fd"
+command -v lazygit &> /dev/null && echo "   ✅ lazygit"
 echo ""
 echo "💡 .zshrc에서 이들을 활성화하려면:"
 echo "   cd zsh && ./install.sh"

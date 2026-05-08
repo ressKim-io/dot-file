@@ -177,6 +177,9 @@ fi
 # pipx 로컬 bin 경로
 [ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
 
+# krew (kubectl 플러그인 매니저) PATH
+[ -d "${KREW_ROOT:-$HOME/.krew}/bin" ] && export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
 # 호스트 이름 제거
 unset HOST
 

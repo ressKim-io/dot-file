@@ -182,7 +182,7 @@ else
     command -v brew &> /dev/null && brew install git-delta
   elif [ "$MACHINE" = "Linux" ]; then
     ARCH=$(get_arch_generic)
-    DELTA_VERSION=$(get_latest_github_tag "dandavison/delta" "0.18.2")
+    DELTA_VERSION=$(get_latest_github_tag "dandavison/delta" "0.19.2")
     TMPDIR=$(mktemp -d)
     if curl -fsSL "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/delta-${DELTA_VERSION}-$(uname -m)-unknown-linux-gnu.tar.gz" -o "$TMPDIR/delta.tar.gz"; then
       tar -xzf "$TMPDIR/delta.tar.gz" -C "$TMPDIR"

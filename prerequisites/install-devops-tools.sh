@@ -191,7 +191,7 @@ else
           *) TOFU_ARCH="amd64" ;;
         esac
         TOFU_VERSION=$(curl -s --connect-timeout 10 https://api.github.com/repos/opentofu/opentofu/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
-        [ -z "$TOFU_VERSION" ] && TOFU_VERSION="1.10.6"
+        [ -z "$TOFU_VERSION" ] && TOFU_VERSION="1.11.6"
         TMPDIR=$(mktemp -d)
         if curl -fsSL "https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_linux_${TOFU_ARCH}.zip" -o "$TMPDIR/tofu.zip"; then
           (cd "$TMPDIR" && unzip -qo tofu.zip && sudo install -m 0755 tofu /usr/local/bin/tofu)

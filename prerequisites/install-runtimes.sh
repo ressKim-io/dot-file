@@ -34,7 +34,7 @@ check_prerequisites
 
 # Fallback 버전 (API 실패 시 사용)
 FALLBACK_NVM_VERSION="v0.40.4"
-FALLBACK_GO_VERSION="go1.26.0"
+FALLBACK_GO_VERSION="go1.26.2"
 
 # OS 감지
 OS="$(uname -s)"

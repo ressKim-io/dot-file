@@ -212,7 +212,7 @@ else
       *) K9S_ARCH="amd64" ;;
     esac
     K9S_VERSION=$(curl -s --connect-timeout 10 https://api.github.com/repos/derailed/k9s/releases/latest | grep '"tag_name"' | sed -E 's/.*"(v[^"]+)".*/\1/')
-    [ -z "$K9S_VERSION" ] && K9S_VERSION="v0.50.9"
+    [ -z "$K9S_VERSION" ] && K9S_VERSION="v0.50.18"
     TMPDIR=$(mktemp -d)
     if curl -fsSL "https://github.com/derailed/k9s/releases/download/${K9S_VERSION}/k9s_Linux_${K9S_ARCH}.tar.gz" -o "$TMPDIR/k9s.tar.gz"; then
       tar -xzf "$TMPDIR/k9s.tar.gz" -C "$TMPDIR"
@@ -252,7 +252,7 @@ else
       *) STERN_ARCH="amd64" ;;
     esac
     STERN_VERSION=$(curl -s --connect-timeout 10 https://api.github.com/repos/stern/stern/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
-    [ -z "$STERN_VERSION" ] && STERN_VERSION="1.32.0"
+    [ -z "$STERN_VERSION" ] && STERN_VERSION="1.34.0"
     TMPDIR=$(mktemp -d)
     if curl -fsSL "https://github.com/stern/stern/releases/download/v${STERN_VERSION}/stern_${STERN_VERSION}_linux_${STERN_ARCH}.tar.gz" -o "$TMPDIR/stern.tar.gz"; then
       tar -xzf "$TMPDIR/stern.tar.gz" -C "$TMPDIR"

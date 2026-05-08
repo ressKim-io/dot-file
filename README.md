@@ -45,7 +45,10 @@ dotfiles/
 │   ├── README.md
 │   ├── install.sh              # tmux + TPM + 플러그인 자동 설치
 │   └── .tmux.conf              # 메인 설정
-├── git/                         # (예정) Git 설정
+├── git/                         # ✅ Git 글로벌 설정 + 셸 alias
+│   ├── README.md
+│   ├── install.sh              # config 적용 + alias 등록
+│   └── git-aliases.sh          # 셸 단축어 (gst/gco/gp 등)
 └── docker/                      # (예정) Docker 관련 설정
 ```
 
@@ -126,6 +129,10 @@ cd vim
 # tmux 사용 시
 cd tmux
 ./install.sh
+
+# git 글로벌 설정 사용 시
+cd git
+./install.sh
 ```
 
 ---
@@ -145,6 +152,7 @@ cd nvim && ./install.sh && cd ..
 cd aws && ./install.sh && cd ..  # AWS CLI 사용 시
 cd vim && ./install.sh && cd ..  # Vim 사용 시
 cd tmux && ./install.sh && cd .. # tmux 사용 시
+cd git && ./install.sh && cd ..  # git 글로벌 설정 사용 시
 ```
 
 ---
@@ -206,13 +214,17 @@ cd tmux && ./install.sh && cd .. # tmux 사용 시
 - ✅ kubectl 컨텍스트 상태바 표시
 - ✅ 세션 자동 저장/복원 (15분 주기)
 
+### git
+- ✅ pull.rebase=true, push.autoSetupRemote, fetch.prune 등 합리적 기본값
+- ✅ delta 자동 pager 통합 (설치된 경우)
+- ✅ rerere(충돌 학습), zdiff3 충돌 표시
+- ✅ git alias (st, co, br, lg, lga, last, amend, fixup, aliases)
+- ✅ 셸 alias 30+ (gst, gco, gp, gpf, gpu, gmain, gprune 등)
+- ✅ user.name/email은 보존 (덮어쓰지 않음)
+
 ---
 
 ## 📋 예정된 설정
-
-### git (예정)
-- Git 글로벌 설정
-- Git alias (gst, gco, gp 등)
 
 ### docker (우선순위 낮음)
 - Docker Compose alias

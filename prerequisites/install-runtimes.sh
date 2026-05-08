@@ -255,6 +255,32 @@ else
   fi
 fi
 
+# ========================================
+# mise (다중 런타임 매니저, opt-in)
+# ========================================
+# mise는 nvm + Go + Python 등을 .tool-versions/.mise.toml로 통합 관리합니다.
+# 기존 nvm/Go 설치를 즉시 대체하지 않으며, 활성화는 .zshrc에서 옵트인입니다.
+echo ""
+echo "=========================================="
+echo "📦 mise 설치 (다중 런타임 매니저, opt-in)"
+echo "=========================================="
+
+if command -v mise &> /dev/null; then
+  echo "✅ mise 이미 설치됨: $(mise --version | awk '{print $1}')"
+else
+  if [ "$MACHINE" = "Mac" ]; then
+    command -v brew &> /dev/null && brew install mise
+  elif [ "$MACHINE" = "Linux" ]; then
+    # 공식 설치 스크립트 (~/.local/bin/mise에 배치)
+    curl -fsSL https://mise.run | sh
+  fi
+  if command -v mise &> /dev/null || [ -x "$HOME/.local/bin/mise" ]; then
+    echo "✅ mise 설치 완료"
+    echo "💡 활성화: ~/.zshrc 하단의 mise 블록 주석 해제"
+    echo "   nvm 마이그레이션: mise use --global node@lts; mise use --global go@latest"
+  fi
+fi
+
 echo ""
 echo "=========================================="
 echo "✅ 런타임 설치 완료!"
@@ -266,6 +292,7 @@ command -v node &> /dev/null && echo "   - Node.js: $(node --version)"
 command -v npm &> /dev/null && echo "   - npm: $(npm --version)"
 command -v python3 &> /dev/null && echo "   - Python3: $(python3 --version | awk '{print $2}')"
 command -v pip3 &> /dev/null && echo "   - pip3: $(pip3 --version | awk '{print $2}')"
+(command -v mise &> /dev/null || [ -x "$HOME/.local/bin/mise" ]) && echo "   - mise: $({ command -v mise &> /dev/null && mise --version || "$HOME"/.local/bin/mise --version; } | awk '{print $1}') (opt-in)"
 echo ""
 echo "💡 주의:"
 echo "   - 새 터미널을 열거나 'source ~/.zshrc' (또는 ~/.bashrc)를 실행하세요."

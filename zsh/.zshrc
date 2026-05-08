@@ -330,3 +330,17 @@ ZSH_THEME_GIT_PROMPT_CLEAN=""
 # 동기화(선택): atuin register / atuin login
 #
 # command -v atuin &> /dev/null && eval "$(atuin init zsh)"
+
+# ========================================
+# 🛠️  mise 다중 런타임 매니저 (opt-in)
+# ========================================
+# mise는 nvm/asdf 대체로 Node/Go/Python/Terraform 등을
+# .tool-versions / .mise.toml로 통합 관리합니다.
+# 활성화하면 PATH 우선순위가 mise 쪽으로 바뀌므로 기존 nvm 충돌 가능.
+# 마이그레이션:
+#   1. 아래 한 줄 주석 해제 + 새 셸
+#   2. mise use --global node@lts go@latest python@latest
+#   3. (선택) ~/.zshrc의 nvm 블록(약 130~165라인 근처) 주석 처리
+#
+# [ -x "$HOME/.local/bin/mise" ] && eval "$($HOME/.local/bin/mise activate zsh)" || \
+#   command -v mise &> /dev/null && eval "$(mise activate zsh)"

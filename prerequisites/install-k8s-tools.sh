@@ -334,6 +334,40 @@ else
   rm -rf "$TMPDIR"
 fi
 
+# ========================================
+# 8. argocd CLI 설치 (GitOps)
+# ========================================
+
+echo ""
+echo "=========================================="
+echo "📦 argocd CLI 설치 (GitOps)"
+echo "=========================================="
+
+if command -v argocd &> /dev/null; then
+  echo "✅ argocd 이미 설치됨: $(argocd version --client --short 2>/dev/null || echo 'installed')"
+else
+  echo "📥 argocd 설치 중..."
+  if [ "$MACHINE" = "Mac" ]; then
+    if command -v brew &> /dev/null; then
+      brew install argocd
+    fi
+  elif [ "$MACHINE" = "Linux" ]; then
+    case "$(uname -m)" in
+      x86_64) ARGO_ARCH="amd64" ;;
+      aarch64|arm64) ARGO_ARCH="arm64" ;;
+      *) ARGO_ARCH="amd64" ;;
+    esac
+    ARGO_VERSION=$(curl -s --connect-timeout 10 https://api.github.com/repos/argoproj/argo-cd/releases/latest | grep '"tag_name"' | sed -E 's/.*"(v[^"]+)".*/\1/')
+    [ -z "$ARGO_VERSION" ] && ARGO_VERSION="v3.3.9"
+    if sudo curl -fsSL "https://github.com/argoproj/argo-cd/releases/download/${ARGO_VERSION}/argocd-linux-${ARGO_ARCH}" -o /usr/local/bin/argocd; then
+      sudo chmod +x /usr/local/bin/argocd
+      echo "✅ argocd 설치 완료: $ARGO_VERSION"
+    else
+      echo "⚠️  argocd 다운로드 실패"
+    fi
+  fi
+fi
+
 echo ""
 echo "=========================================="
 echo "✅ Kubernetes 도구 설치 완료!"
@@ -348,6 +382,7 @@ command -v k9s &> /dev/null && echo "   - k9s: installed"
 command -v stern &> /dev/null && echo "   - stern: installed"
 command -v kustomize &> /dev/null && echo "   - kustomize: $(kustomize version | head -n 1)"
 [ -x "$HOME/.krew/bin/kubectl-krew" ] && echo "   - krew: $("$HOME"/.krew/bin/kubectl-krew version 2>/dev/null | grep GitTag | awk '{print $2}' || echo 'installed')"
+command -v argocd &> /dev/null && echo "   - argocd: $(argocd version --client --short 2>/dev/null || echo 'installed')"
 echo ""
 echo "🧪 테스트:"
 echo "   kubectl version --client"

@@ -301,7 +301,104 @@ fi
 echo ""
 
 # ========================================
-# 11. Nerd Font (JetBrainsMono)
+# 11. lazydocker (Docker TUI)
+# ========================================
+echo "=========================================="
+echo "📦 lazydocker 설치 (Docker TUI)"
+echo "=========================================="
+
+if command -v lazydocker &> /dev/null; then
+  echo "✅ lazydocker 이미 설치됨"
+else
+  if [ "$MACHINE" = "Mac" ]; then
+    command -v brew &> /dev/null && brew install lazydocker
+  elif [ "$MACHINE" = "Linux" ]; then
+    case "$(uname -m)" in
+      x86_64) LD_ARCH="x86_64" ;;
+      aarch64|arm64) LD_ARCH="arm64" ;;
+      *) LD_ARCH="x86_64" ;;
+    esac
+    LD_VERSION=$(get_latest_github_tag "jesseduffield/lazydocker" "0.25.2")
+    TMPDIR=$(mktemp -d)
+    if curl -fsSL "https://github.com/jesseduffield/lazydocker/releases/download/v${LD_VERSION}/lazydocker_${LD_VERSION}_Linux_${LD_ARCH}.tar.gz" -o "$TMPDIR/lazydocker.tar.gz"; then
+      tar -xzf "$TMPDIR/lazydocker.tar.gz" -C "$TMPDIR" lazydocker
+      sudo install -m 0755 "$TMPDIR/lazydocker" /usr/local/bin/lazydocker
+      echo "✅ lazydocker 설치 완료: $LD_VERSION"
+    else
+      echo "⚠️  lazydocker 다운로드 실패"
+    fi
+    rm -rf "$TMPDIR"
+  fi
+fi
+echo ""
+
+# ========================================
+# 12. dive (Docker 이미지 레이어 분석)
+# ========================================
+echo "=========================================="
+echo "📦 dive 설치 (Docker 이미지 레이어 분석)"
+echo "=========================================="
+
+if command -v dive &> /dev/null; then
+  echo "✅ dive 이미 설치됨: $(dive --version 2>/dev/null | awk '{print $2}')"
+else
+  if [ "$MACHINE" = "Mac" ]; then
+    command -v brew &> /dev/null && brew install dive
+  elif [ "$MACHINE" = "Linux" ]; then
+    DIVE_ARCH=$(get_arch_generic)
+    DIVE_VERSION=$(get_latest_github_tag "wagoodman/dive" "0.13.1")
+    TMPDIR=$(mktemp -d)
+    if curl -fsSL "https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_${DIVE_ARCH}.tar.gz" -o "$TMPDIR/dive.tar.gz"; then
+      tar -xzf "$TMPDIR/dive.tar.gz" -C "$TMPDIR" dive
+      sudo install -m 0755 "$TMPDIR/dive" /usr/local/bin/dive
+      echo "✅ dive 설치 완료: $DIVE_VERSION"
+    else
+      echo "⚠️  dive 다운로드 실패"
+    fi
+    rm -rf "$TMPDIR"
+  fi
+fi
+echo ""
+
+# ========================================
+# 13. tealdeer (tldr - 빠른 명령어 치트시트)
+# ========================================
+echo "=========================================="
+echo "📦 tealdeer 설치 (tldr - 명령어 치트시트)"
+echo "=========================================="
+
+if command -v tldr &> /dev/null; then
+  echo "✅ tldr 이미 설치됨"
+else
+  if [ "$MACHINE" = "Mac" ]; then
+    command -v brew &> /dev/null && brew install tealdeer
+  elif [ "$MACHINE" = "Linux" ]; then
+    # Ubuntu 24.04+ apt 또는 GitHub Releases binary
+    if apt-cache show tealdeer &> /dev/null; then
+      sudo apt-get install -y tealdeer
+    elif command -v apt-get &> /dev/null; then
+      case "$(uname -m)" in
+        x86_64) TLDR_ARCH="x86_64-unknown-linux-musl" ;;
+        aarch64|arm64) TLDR_ARCH="aarch64-unknown-linux-musl" ;;
+        *) TLDR_ARCH="x86_64-unknown-linux-musl" ;;
+      esac
+      TLDR_VERSION=$(get_latest_github_tag "tealdeer-rs/tealdeer" "1.8.1")
+      TMPDIR=$(mktemp -d)
+      if curl -fsSL "https://github.com/tealdeer-rs/tealdeer/releases/download/v${TLDR_VERSION}/tealdeer-linux-${TLDR_ARCH}" -o "$TMPDIR/tldr"; then
+        sudo install -m 0755 "$TMPDIR/tldr" /usr/local/bin/tldr
+        echo "✅ tealdeer 설치 완료: $TLDR_VERSION"
+      else
+        echo "⚠️  tealdeer 다운로드 실패"
+      fi
+      rm -rf "$TMPDIR"
+    fi
+  fi
+  command -v tldr &> /dev/null && tldr --update 2>/dev/null || true
+fi
+echo ""
+
+# ========================================
+# 14. Nerd Font (JetBrainsMono)
 # ========================================
 echo "=========================================="
 echo "🔤 Nerd Font 설치 (JetBrainsMono)"
@@ -360,6 +457,9 @@ command -v direnv &> /dev/null && echo "   ✅ direnv"
 command -v rg     &> /dev/null && echo "   ✅ ripgrep"
 (command -v fd &> /dev/null || command -v fdfind &> /dev/null) && echo "   ✅ fd"
 command -v lazygit &> /dev/null && echo "   ✅ lazygit"
+command -v lazydocker &> /dev/null && echo "   ✅ lazydocker"
+command -v dive &> /dev/null && echo "   ✅ dive"
+command -v tldr &> /dev/null && echo "   ✅ tldr (tealdeer)"
 echo ""
 echo "💡 .zshrc에서 이들을 활성화하려면:"
 echo "   cd zsh && ./install.sh"

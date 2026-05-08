@@ -14,9 +14,9 @@ dotfiles/
 │   ├── install.sh              # 전체 자동 설치
 │   ├── install-runtimes.sh     # Go, Node.js, Python
 │   ├── install-docker.sh       # Docker
-│   ├── install-k8s-tools.sh    # kubectl, helm, k9s, stern, kustomize, krew
+│   ├── install-k8s-tools.sh    # kubectl, helm, k9s, stern, kustomize, krew, argocd
 │   ├── install-devops-tools.sh # terraform, gh, jq, yq, trivy 등
-│   └── install-modern-cli.sh   # fzf, bat, eza, ripgrep, fd, lazygit, delta 등
+│   └── install-modern-cli.sh   # fzf, bat, eza, ripgrep, fd, lazygit, lazydocker, dive, tldr 등
 ├── zsh/                         # ✅ Zsh + Oh-My-Zsh 설정
 │   ├── README.md
 │   ├── install.sh              # 자동 설치 (Mac/Ubuntu)

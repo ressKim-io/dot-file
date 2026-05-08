@@ -34,6 +34,7 @@
 - **kustomize** - K8s 매니페스트 합성
 - **krew** + 핵심 플러그인(`tree`, `neat`, `who-can`)
   - kubectl 플러그인 매니저
+- **argocd CLI** - GitOps 배포 관리
 
 ### 🔧 DevOps 도구
 - **terraform** (HashiCorp 공식)
@@ -52,6 +53,9 @@
 - **ripgrep (rg)** - 빠른 grep 대체
 - **fd** - 사용자 친화적 find 대체
 - **lazygit** - Git TUI
+- **lazydocker** - Docker TUI
+- **dive** - Docker 이미지 레이어 분석
+- **tealdeer (tldr)** - 빠른 명령어 치트시트
 - **JetBrainsMono Nerd Font**
 
 ---

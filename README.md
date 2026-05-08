@@ -49,7 +49,10 @@ dotfiles/
 │   ├── README.md
 │   ├── install.sh              # config 적용 + alias 등록
 │   └── git-aliases.sh          # 셸 단축어 (gst/gco/gp 등)
-└── docker/                      # (예정) Docker 관련 설정
+└── docker/                      # ✅ Docker 셸 단축어 + 정리 함수
+    ├── README.md
+    ├── install.sh              # alias 등록
+    └── docker-aliases.sh       # d/dc/dps/dsh/drmall 등
 ```
 
 ---
@@ -133,6 +136,10 @@ cd tmux
 # git 글로벌 설정 사용 시
 cd git
 ./install.sh
+
+# Docker 단축어 사용 시
+cd docker
+./install.sh
 ```
 
 ---
@@ -153,6 +160,7 @@ cd aws && ./install.sh && cd ..  # AWS CLI 사용 시
 cd vim && ./install.sh && cd ..  # Vim 사용 시
 cd tmux && ./install.sh && cd .. # tmux 사용 시
 cd git && ./install.sh && cd ..  # git 글로벌 설정 사용 시
+cd docker && ./install.sh && cd ..  # Docker 단축어 사용 시
 ```
 
 ---
@@ -222,11 +230,12 @@ cd git && ./install.sh && cd ..  # git 글로벌 설정 사용 시
 - ✅ 셸 alias 30+ (gst, gco, gp, gpf, gpu, gmain, gprune 등)
 - ✅ user.name/email은 보존 (덮어쓰지 않음)
 
----
-
-## 📋 예정된 설정
-
-### docker (우선순위 낮음)
+### docker
+- ✅ 셸 alias 40+ (`d`, `dps`, `dex`, `dl`, `di` 등)
+- ✅ Docker Compose v2 단축어 (`dc`, `dcup`, `dcdown`, `dclf` 등)
+- ✅ 안전 정리 함수 (`drmall`, `drmidangling` — 확인 메시지 포함)
+- ✅ 진단 함수 (`dsh`, `dip`, `ddive`, `ddisk`)
+- ✅ lazydocker / dive / trivy / hadolint와의 통합 안내
 - Docker Compose alias
 - 자주 쓰는 Docker 명령어 단축
 
